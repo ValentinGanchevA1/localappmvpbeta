@@ -1,4 +1,3 @@
-// src/App.tsx
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store';
@@ -6,6 +5,7 @@ import RootNavigator from './navigation/RootNavigator';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AppInitializer } from './components/AppInitializer';
 import { PersistLoading } from './components/PersistLoading';
+import { ConnectionStatus } from './components/ConnectionStatus';
 import { NavigationContainer } from '@react-navigation/native';
 
 const App = () => {
@@ -15,6 +15,7 @@ const App = () => {
         <AppInitializer>
           <ErrorBoundary>
             <NavigationContainer>
+              <ConnectionStatus />
               <RootNavigator />
             </NavigationContainer>
           </ErrorBoundary>

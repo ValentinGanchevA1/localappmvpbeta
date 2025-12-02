@@ -12,9 +12,9 @@ const isDevelopment = __DEV__;
 
 const getDevBaseUrl = (): string => {
   if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:3000'; // Android Emulator
+    return 'http://10.0.2.2:3001'; // Android Emulator
   }
-  return 'http://localhost:3000'; // iOS Simulator/real device
+  return 'http://localhost:3001'; // iOS Simulator/real device
 };
 
 const environments: Record<string, AppEnvironment> = {
