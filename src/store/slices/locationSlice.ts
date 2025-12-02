@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction, isAnyOf } from '@reduxjs/toolkit';
 import { locationApi, NearbyUser } from '@/api/locationApi';
 import { Region } from 'react-native-maps';
-import Geolocation from 'react-native-geolocation-service';
 
 interface LocationState {
   latitude: number | null;
@@ -27,62 +26,19 @@ const initialState: LocationState = {
   lastUpdated: null,
 };
 
-export const updateCurrentLocation = createAsyncThunk<
-  { latitude: number; longitude: number; accuracy: number | null },
-  void,
-  { rejectValue: string }
->(
-  'location/updateCurrentLocation',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await new Promise((resolve, reject) => {
-        Geolocation.getCurrentPosition(
-          (position) => {
-            resolve({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              accuracy: position.coords.accuracy || null,
-            });
-          },
-          (error) => reject(error),
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
-      });
-    } catch (error: any) {
-      return rejectWithValue(
-        error.message || 'Failed to get current location'
-      );
-    }
-  }
-);
-
-// Update extraReducers for updateCurrentLocation
-extraReducers: (builder) => {
-  builder
-    .addCase(updateCurrentLocation.pending, (state) => {
-      state.loading = true;
-      state.error = null;
-    })
-    .addCase(updateCurrentLocation.fulfilled, (state, action) => {
-      state.latitude = action.payload.latitude;
-      state.longitude = action.payload.longitude;
-      state.accuracy = action.payload.accuracy;
-      state.lastUpdated = Date.now();
-      state.loading = false;
-    })
-    .addCase(updateCurrentLocation.rejected, (state, action) => {
-      state.error = action.payload || 'Location update failed';
-      state.loading = false;
-    });
-};
-
+// ✅ Properly defined async thunk
 export const fetchNearbyData = createAsyncThunk<
   NearbyUser[],
-  { latitude: number; longitude: number; radius?: number }
+  { latitude: number; longitude: number; radius?: number },
+  { rejectValue: string }
 >(
   'location/fetchNearbyData',
-  async (params) => {
-    return locationApi.getNearbyUsers(params);
+  async (params, { rejectWithValue }) => {
+    try {
+      return await locationApi.getNearbyUsers(params);
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch nearby users');
+    }
   }
 );
 
@@ -90,13 +46,14 @@ const locationSlice = createSlice({
   name: 'location',
   initialState,
   reducers: {
-    updateCurrentLocation: (
+    // ✅ Synchronous actions for immediate updates
+    setCurrentLocation: (
       state,
-      action: PayloadAction<{ latitude: number; longitude: number; accuracy: number }>
+      action: PayloadAction<{ latitude: number; longitude: number; accuracy?: number | null }>
     ) => {
       state.latitude = action.payload.latitude;
       state.longitude = action.payload.longitude;
-      state.accuracy = action.payload.accuracy;
+      state.accuracy = action.payload.accuracy ?? null;
       state.lastUpdated = Date.now();
     },
     setLocationTracking: (state, action: PayloadAction<boolean>) => {
@@ -111,29 +68,28 @@ const locationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Pending state
+      .addCase(fetchNearbyData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      // Success state
       .addCase(fetchNearbyData.fulfilled, (state, action) => {
         state.nearbyUsers = action.payload || [];
         state.loading = false;
+        state.error = null;
       })
-      .addMatcher(
-        isAnyOf(fetchNearbyData.pending, updateCurrentLocation.pending),
-        (state) => {
-          state.loading = true;
-          state.error = null;
-        }
-      )
-      .addMatcher(
-        isAnyOf(fetchNearbyData.rejected, updateCurrentLocation.rejected),
-        (state, action) => {
-          state.loading = false;
-          state.error = action.error.message || 'Unknown error';
-        }
-      );
+      // Error state
+      .addCase(fetchNearbyData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Unknown error occurred';
+        state.nearbyUsers = [];
+      });
   },
 });
 
 export const {
-  updateCurrentLocation: setCurrentLocation,
+  setCurrentLocation,
   setLocationTracking,
   setLocationError,
   updateRegion,

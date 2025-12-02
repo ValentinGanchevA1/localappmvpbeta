@@ -1,5 +1,5 @@
 import axiosInstance from '@/api/axiosInstance';
-import { LoginCredentials } from '@/types';
+import { LoginCredentials, RegisterCredentials } from '@/types';
 import { User } from '@/types/user';
 
 export interface AuthResponse {
@@ -15,52 +15,66 @@ export interface AuthResponse {
 
 export const authService = {
   async loginWithPhone(credentials: LoginCredentials): Promise<{ token: string; user: User }> {
-    const data = await axiosInstance.post<AuthResponse>('/auth/phone', credentials);
-    const response = (data as any).data || data;
-    return {
-      token: response.access_token,
-      user: {
-        id: response.user.id,
-        name: response.user.name || '',
-        email: response.user.email || '',
-        avatar: response.user.avatar || '',
-      },
-    };
+    try {
+      // ✅ axiosInstance already has interceptor, get data directly
+      const response = await axiosInstance.post<AuthResponse>('/auth/login', credentials);
+      const data = response.data || response;
+
+      return {
+        token: data.access_token,
+        user: {
+          id: data.user.id,
+          name: data.user.name || '',
+          email: data.user.email || '',
+          avatar: data.user.avatar || '',
+          phone: data.user.phone,
+        },
+      };
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      throw new Error(message);
+    }
   },
 
-  async registerWithPhone(credentials: LoginCredentials): Promise<{ token: string; user: User }> {
-    const data = await axiosInstance.post<AuthResponse>('/auth/register', credentials);
-    const response = (data as any).data || data;
-    return {
-      token: response.access_token,
-      user: {
-        id: response.user.id,
-        name: response.user.name || '',
-        email: response.user.email || '',
-        avatar: response.user.avatar || '',
-      },
-    };
+  async registerWithPhone(credentials: RegisterCredentials): Promise<{ token: string; user: User }> {
+    try {
+      const payload: any = {
+        phone: credentials.phone,
+        password: credentials.password,
+      };
+      if (credentials.name) payload.name = credentials.name;
+      if (credentials.email) payload.email = credentials.email;
+
+      const response = await axiosInstance.post<AuthResponse>('/auth/register', payload);
+      const data = response.data || response;
+
+      return {
+        token: data.access_token,
+        user: {
+          id: data.user.id,
+          name: data.user.name || '',
+          email: data.user.email || '',
+          avatar: data.user.avatar || '',
+          phone: data.user.phone,
+        },
+      };
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Registration failed';
+      throw new Error(message);
+    }
   },
 
   async loginWithPassword(credentials: LoginCredentials): Promise<{ token: string; user: User }> {
-    const data = await axiosInstance.post<AuthResponse>('/auth/login', credentials);
-    const response = (data as any).data || data;
-    return {
-      token: response.access_token,
-      user: {
-        id: response.user.id,
-        name: response.user.name || '',
-        email: response.user.email || '',
-        avatar: response.user.avatar || '',
-      },
-    };
+    return this.loginWithPhone(credentials); // Reuse same endpoint
   },
 
   async verifyCode(code: string): Promise<{ verified: boolean }> {
-    return await axiosInstance.post('/auth/verify', { code });
+    const response = await axiosInstance.post('/auth/verify', { code });
+    return response.data || response;
   },
 
   async refreshToken(token: string): Promise<{ token: string }> {
-    return await axiosInstance.post('/auth/refresh', { token });
+    const response = await axiosInstance.post('/auth/refresh', { token });
+    return response.data || response;
   },
 };

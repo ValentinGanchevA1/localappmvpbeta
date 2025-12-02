@@ -1,6 +1,6 @@
 // src/navigation/RootNavigator.tsx
 import React, { useEffect } from 'react';
-import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useAppSelector } from '@/store/hooks';
 import MainTabNavigator from './MainTabNavigator';
 import { AuthNavigator } from './AuthNavigator';
