@@ -8,70 +8,78 @@ import { SocketService } from '@/services/socketService';
 import { AppEnvironment } from '@/config/environment';
 
 interface AppInitializerProps {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
-	const dispatch = useAppDispatch();
-	const { isAuthenticated, user } = useAuth();
-	const { startTracking } = useLocation();
-	const [appState, setAppState] = useState<AppStateStatus>(
-		AppState.currentState
-	);
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useAuth();
+  const { startTracking } = useLocation(); // ⭐ GET LOCATION HOOK
+  const [appState, setAppState] = useState<AppStateStatus>(
+    AppState.currentState
+  );
 
-	// Initialize app when user is authenticated
-	useEffect(() => {
-		const initializeApp = async () => {
-			if (!isAuthenticated || !user) return;
+  // ============================================================================
+  // STEP 1: Initialize when user is authenticated
+  // ============================================================================
+  useEffect(() => {
+    const initializeApp = async () => {
+      if (!isAuthenticated || !user) return; // Wait for auth
 
-			try {
-				// Initialize socket
-				SocketService.getInstance().initialize(AppEnvironment.SOCKET_URL);
+      try {
+        // A) Start location tracking
+        // ⭐⭐⭐ THIS IS WHERE LOCATION TRACKING BEGINS ⭐⭐⭐
+        await startTracking();
+        console.log('[AppInitializer] Location tracking started');
 
-				// Fetch user profile (non-blocking - don't await)
-				dispatch(fetchUserProfile());
+        // B) Initialize socket for real-time updates
+        SocketService.getInstance().initialize(AppEnvironment.SOCKET_URL);
+        console.log('[AppInitializer] Socket initialized');
 
-				// Start location tracking
-				await startTracking();
+        // C) Fetch user profile (background task)
+        dispatch(fetchUserProfile());
+        console.log('[AppInitializer] Profile fetch initiated');
 
-				if (__DEV__) {
-					console.log('[AppInitializer] App initialized successfully');
-				}
-			} catch (error) {
-				console.error('[AppInitializer] Initialization error:', error);
-				// Continue anyway - profile fetch is optional
-			}
-		};
+        if (__DEV__) {
+          console.log('[AppInitializer] App fully initialized');
+        }
+      } catch (error) {
+        console.error('[AppInitializer] Initialization error:', error);
+        // Continue anyway - individual features are optional
+      }
+    };
 
-		initializeApp();
+    initializeApp();
 
-		return () => {
-			if (isAuthenticated) {
-				// Optional: stop tracking on unmount
-			}
-		};
-	}, [isAuthenticated, user, dispatch, startTracking]);
+    return () => {
+      // Cleanup on unmount (rarely happens)
+    };
+  }, [isAuthenticated, user, dispatch, startTracking]);
 
-	// Handle app state changes
-	useEffect(() => {
-		const subscription = AppState.addEventListener('change', (nextAppState) => {
-			// App came to foreground
-			if (appState.match(/inactive|background/) && nextAppState === 'active') {
-				if (isAuthenticated) {
-					dispatch(fetchUserProfile());
-					if (__DEV__) {
-						console.log('[AppInitializer] App resumed, refreshing profile');
-					}
-				}
-			}
+  // ============================================================================
+  // STEP 2: Handle app state changes (foreground/background)
+  // ============================================================================
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      // App came to foreground
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        if (isAuthenticated) {
+          // Refresh data when user brings app to foreground
+          dispatch(fetchUserProfile());
+          if (__DEV__) {
+            console.log('[AppInitializer] App resumed, refreshing data');
+          }
+        }
+      }
 
-			setAppState(nextAppState);
-		});
+      setAppState(nextAppState);
+    });
 
-		return () => {
-			subscription.remove();
-		};
-	}, [appState, isAuthenticated, dispatch]);
+    return () => {
+      subscription.remove();
+    };
+  }, [appState, isAuthenticated, dispatch]);
 
-	return <>{children}</>;
+  // Children render normally once app is initialized
+  return <>{children}</>;
 };

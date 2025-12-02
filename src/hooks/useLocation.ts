@@ -31,49 +31,64 @@ export const useLocation = () => {
     return status;
   }, []);
 
-  const startTracking = useCallback(async () => {
-    try {
-      const perm = await handlePermission();
-      if (perm !== 'granted') {
-        throw new Error('Location permission denied');
-      }
+ const startTracking = useCallback(async () => {
+   try {
+     // 1. Request location permission (iOS/Android)
+     const perm = await handlePermission();
+     if (perm !== 'granted') {
+       throw new Error('Location permission denied');
+     }
 
-      // Get initial location to center map
-      const { latitude, longitude } =
-        await locationService.getCurrentLocation();
+     // 2. Get initial location to center map
+     const { latitude, longitude } = await locationService.getCurrentLocation();
 
-      const initialRegion: Region = {
-        latitude,
-        longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      };
-      dispatch(updateRegion(initialRegion));
-      dispatch(updateCurrentLocation());
+     // 3. Update Redux store with initial location
+     const initialRegion: Region = {
+       latitude,
+       longitude,
+       latitudeDelta: 0.0922,
+       longitudeDelta: 0.0421,
+     };
+     dispatch(updateRegion(initialRegion));
+     dispatch(updateCurrentLocation()); // Updates in Redux
 
-      // Start watching for location changes
-      watchIdRef.current = Geolocation.watchPosition(
-        (position) => {
-          dispatch(updateCurrentLocation());
-          dispatch(
-            fetchNearbyData({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              radius: 5000,
-            })
-          );
-        },
-        (error) => console.error('[useLocation] Watch Error:', error),
-        { enableHighAccuracy: true, distanceFilter: 50, interval: 10000 }
-      );
+     // 4. Start watching for continuous location changes
+     // This runs in background and sends updates to backend every 30 seconds
+     watchIdRef.current = Geolocation.watchPosition(
+       (position) => {
+         // A) Update local state
+         dispatch(updateCurrentLocation());
 
-      dispatch(startLocationTracking());
-      return { success: true };
-    } catch (error: any) {
-      console.error('[useLocation] Start Tracking Error:', error);
-      return { success: false, error: error.message };
-    }
-  }, [dispatch, handlePermission]);
+         // B) Fetch nearby users when location changes
+         dispatch(
+           fetchNearbyData({
+             latitude: position.coords.latitude,
+             longitude: position.coords.longitude,
+             radius: 5000, // 5km radius
+           })
+         );
+
+         // C) Send location to backend via API
+         locationApi.updateLocation(
+           position.coords.latitude,
+           position.coords.longitude
+         );
+       },
+       (error) => console.error('[useLocation] Watch Error:', error),
+       {
+         enableHighAccuracy: true,
+         distanceFilter: 50, // Update every 50 meters
+         interval: 10000, // Check every 10 seconds
+       }
+     );
+
+     dispatch(startLocationTracking()); // Set Redux flag
+     return { success: true };
+   } catch (error: any) {
+     console.error('[useLocation] Start Tracking Error:', error);
+     return { success: false, error: error.message };
+   }
+ }, [dispatch, handlePermission]);
 
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
@@ -148,3 +163,9 @@ export const useLocation = () => {
     clearError: useCallback(() => dispatch(clearLocationError()), [dispatch]),
   };
 };
+export const startLocationTracking = () =>
+  setLocationTracking(true);
+export const stopLocationTracking = () =>
+  setLocationTracking(false);
+export const clearLocationError = () =>
+  setLocationError(null);

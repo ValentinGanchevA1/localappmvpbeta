@@ -25,11 +25,6 @@ export const PhoneLoginScreen: React.FC = () => {
 	const { login, loading, error, clearAuthError } = useAuth();
 	const navigation = useNavigation<NavigationProp>();
 
-	useEffect(() => {
-		return () => {
-			clearAuthError();
-		};
-	}, [clearAuthError]);
 
 	useEffect(() => {
 		if (error) {
