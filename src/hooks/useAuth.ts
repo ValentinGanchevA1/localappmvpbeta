@@ -61,7 +61,7 @@ export const useAuth = () => {
     // State
     ...authState,
     isAuthenticated: authState.isAuthenticated && !!authState.token,
-
+    loading: authState.loading,
     // Actions
     login,
     register,

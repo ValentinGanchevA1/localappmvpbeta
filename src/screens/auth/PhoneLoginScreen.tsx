@@ -73,7 +73,7 @@ export const PhoneLoginScreen: React.FC = () => {
 
 	const isPhoneValid = /^\+[1-9]\d{1,14}$/.test(phone);
 	const isFormValid = isPhoneValid && password.trim().length >= 6;
-
+  const isButtonDisabled = !isFormValid || loading;
 	return (
 		<KeyboardAvoidingView
 			style={styles.container}
@@ -120,7 +120,7 @@ export const PhoneLoginScreen: React.FC = () => {
 						title="Sign In"
 						onPress={handleLogin}
 						loading={loading}
-						disabled={!isFormValid || loading}
+            disabled={isButtonDisabled}
 						fullWidth
 						style={styles.signInButton}
 					/>
@@ -129,7 +129,9 @@ export const PhoneLoginScreen: React.FC = () => {
 				<View style={styles.footer}>
 					<Text style={styles.footerText}>Don't have an account? </Text>
 					<TouchableOpacity onPress={goToSignup} disabled={loading}>
-						<Text style={styles.signupText}>Sign Up</Text>
+            <Text style={[styles.signupText, loading && { opacity: 0.6 }]}>
+              Sign Up
+            </Text>
 					</TouchableOpacity>
 				</View>
 			</ScrollView>

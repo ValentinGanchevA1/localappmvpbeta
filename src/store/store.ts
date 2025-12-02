@@ -21,7 +21,9 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'theme'], // Persist auth and theme slices
+  whitelist: ['auth', 'theme'],
+  timeout: 0, // Don't wait indefinitely for rehydration
+  throttle: 1000, // Only persist every 1 second
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -30,7 +32,7 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // Ignore non-serializable actions from redux-persist
+      serializableCheck: false,
     }),
 });
 

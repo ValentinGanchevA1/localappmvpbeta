@@ -11,7 +11,7 @@ import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
  * based on user authentication status.
  */
 const RootNavigator: React.FC = () => {
-	const { isAuthenticated, loading, token } = useAppSelector(
+	const { isAuthenticated, token } = useAppSelector(
 		state => state.auth
 	);
 
@@ -21,21 +21,9 @@ const RootNavigator: React.FC = () => {
 			console.log('[RootNavigator] Auth State:', {
 				isAuthenticated,
 				hasToken: !!token,
-				loading,
 			});
 		}
-	}, [isAuthenticated, token, loading]);
-
-	// Show loading spinner while auth state is being restored from AsyncStorage
-	// This happens on app startup when redux-persist is rehydrating the store
-	if (loading) {
-		return (
-			<View style={styles.loadingContainer}>
-				<ActivityIndicator size="large" color={COLORS.PRIMARY} />
-				<Text style={styles.loadingText}>Loading...</Text>
-			</View>
-		);
-	}
+	}, [isAuthenticated, token]);
 
 	// Switch between Auth and Main navigation based on authentication
 	// If user has a token and isAuthenticated = true, show main app

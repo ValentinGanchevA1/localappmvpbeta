@@ -59,6 +59,10 @@ export const Button: React.FC<ButtonProps> = ({
         return TYPOGRAPHY.SIZES.MD;
     }
   };
+  const getIndicatorColor = () => {
+    // FIX: Return correct color for outline variant
+    return variant === 'outline' ? COLORS.PRIMARY : COLORS.WHITE;
+  };
 
   return (
     <TouchableOpacity
@@ -78,7 +82,7 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           testID="activity-indicator"
-          color={variant === 'outline' ? COLORS.PRIMARY : COLORS.WHITE}
+          color={getIndicatorColor()}
           size="small"
         />
       ) : (

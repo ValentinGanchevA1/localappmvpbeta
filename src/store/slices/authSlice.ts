@@ -35,7 +35,13 @@ interface AuthResponse {
   user: User;
 }
 
-export const loginWithPhone = createAsyncThunk<AuthResponse, LoginCredentials>(
+export const loginWithPhone = createAsyncThunk<
+  AuthResponse,
+  LoginCredentials,
+  {
+    rejectValue: string;
+  }
+>(
   'auth/loginWithPhone',
   async (credentials, { rejectWithValue }) => {
     try {
@@ -44,19 +50,56 @@ export const loginWithPhone = createAsyncThunk<AuthResponse, LoginCredentials>(
         password: String(credentials.password).trim(),
       };
 
+      // Validate before sending
       if (!ValidationUtils.validateAuthPayload(payload)) {
-        return rejectWithValue('Invalid phone or password');
+        return rejectWithValue('Invalid phone number or password format');
       }
 
-      const response = await axiosInstance.post<AuthResponse>('/auth/login', payload);
+      if (__DEV__) {
+        console.log('[authSlice] Attempting login with:', { phone: payload.phone });
+      }
+
+      // Make API request
+      const response = await axiosInstance.post<AuthResponse>(
+        '/auth/login',
+        payload
+      );
+
+      if (!response.data.access_token || !response.data.user) {
+        return rejectWithValue('Invalid server response - missing token or user');
+      }
+
+      if (__DEV__) {
+        console.log('[authSlice] Login successful, token received');
+      }
+
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        'Login failed. Please try again.';
+
+      if (__DEV__) {
+        console.error('[authSlice] Login error:', {
+          status: error.response?.status,
+          message: errorMessage,
+          data: error.response?.data,
+        });
+      }
+
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
-export const registerWithPhone = createAsyncThunk<AuthResponse, RegisterCredentials>(
+export const registerWithPhone = createAsyncThunk<
+  AuthResponse,
+  RegisterCredentials,
+  {
+    rejectValue: string;
+  }
+>(
   'auth/registerWithPhone',
   async (credentials, { rejectWithValue }) => {
     try {
@@ -68,14 +111,42 @@ export const registerWithPhone = createAsyncThunk<AuthResponse, RegisterCredenti
       if (credentials.name) payload.name = String(credentials.name).trim();
       if (credentials.email) payload.email = String(credentials.email).trim();
 
+      // Validate payload
       if (!ValidationUtils.validateRegisterPayload(payload)) {
         return rejectWithValue('Invalid registration data');
       }
 
-      const response = await axiosInstance.post<AuthResponse>('/auth/register', payload);
+      if (__DEV__) {
+        console.log('[authSlice] Attempting registration with:', {
+          phone: payload.phone,
+        });
+      }
+
+      const response = await axiosInstance.post<AuthResponse>(
+        '/auth/register',
+        payload
+      );
+
+      if (!response.data.access_token || !response.data.user) {
+        return rejectWithValue('Invalid server response');
+      }
+
+      if (__DEV__) {
+        console.log('[authSlice] Registration successful');
+      }
+
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        'Registration failed. Please try again.';
+
+      if (__DEV__) {
+        console.error('[authSlice] Registration error:', errorMessage);
+      }
+
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -84,7 +155,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    logout: (state) => {
+    logout: (_state) => {
       SocketService.getInstance().disconnect();
       return initialState;
     },
@@ -94,6 +165,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Login lifecycle
       .addCase(loginWithPhone.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -103,11 +175,24 @@ const authSlice = createSlice({
         state.token = action.payload.access_token;
         state.user = action.payload.user;
         state.isAuthenticated = true;
+        state.error = null;
+
+        if (__DEV__) {
+          console.log('[authSlice] Login fulfilled, state updated');
+        }
       })
       .addCase(loginWithPhone.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
+        state.loading = false; // ✓ CRITICAL: Reset loading flag
+        state.error = action.payload || 'Login failed';
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
+
+        if (__DEV__) {
+          console.error('[authSlice] Login rejected:', state.error);
+        }
       })
+      // Register lifecycle
       .addCase(registerWithPhone.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -117,10 +202,18 @@ const authSlice = createSlice({
         state.token = action.payload.access_token;
         state.user = action.payload.user;
         state.isAuthenticated = true;
+        state.error = null;
+
+        if (__DEV__) {
+          console.log('[authSlice] Registration fulfilled');
+        }
       })
       .addCase(registerWithPhone.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
+        state.loading = false; // ✓ CRITICAL: Reset loading flag
+        state.error = action.payload || 'Registration failed';
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
       });
   },
 });
