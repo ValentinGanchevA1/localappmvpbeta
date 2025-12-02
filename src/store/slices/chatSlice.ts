@@ -1,55 +1,50 @@
+// src/store/slices/chatSlice.ts (ENHANCED)
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { chatApi, Message, Conversation } from '@/api/chatApi';
+import { SocketService } from '@/services/socketService';
+
+interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+  read: boolean;
+}
 
 interface ChatState {
-  conversations: Conversation[];
-  currentConversationId: string | null;
-  messages: Message[];
+  conversations: any[];
+  currentMessages: Message[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: ChatState = {
   conversations: [],
-  currentConversationId: null,
-  messages: [],
+  currentMessages: [],
   loading: false,
   error: null,
 };
 
-export const fetchConversations = createAsyncThunk(
-  'chat/fetchConversations',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await chatApi.getConversations();
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchMessages = createAsyncThunk(
-  'chat/fetchMessages',
-  async (conversationId: string, { rejectWithValue }) => {
-    try {
-      return await chatApi.getMessages(conversationId);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
 export const sendMessage = createAsyncThunk(
   'chat/sendMessage',
-  async (
-    { conversationId, content }: { conversationId: string; content: string },
-    { rejectWithValue }
-  ) => {
-    try {
-      return await chatApi.sendMessage(conversationId, content);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
-    }
+  async (payload: {
+    conversationId: string;
+    content: string;
+    recipientId: string;
+  }) => {
+    const socket = SocketService.getInstance();
+    return new Promise((resolve, reject) => {
+      socket.emit('message:send', payload);
+
+      // Listen for acknowledgment
+      socket.once('message:sent', (response) => {
+        resolve(response);
+      });
+
+      socket.once('message:error', (error) => {
+        reject(error);
+      });
+    });
   }
 );
 
@@ -57,40 +52,19 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    setCurrentConversation: (state, action) => {
-      state.currentConversationId = action.payload;
+    addMessageToConversation: (state, action) => {
+      state.currentMessages.push(action.payload);
     },
-    clearChat: () => initialState,
+    clearMessages: (state) => {
+      state.currentMessages = [];
+    },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(fetchConversations.fulfilled, (state, action) => {
-        state.conversations = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchMessages.fulfilled, (state, action) => {
-        state.messages = action.payload;
-        state.loading = false;
-      })
-      .addCase(sendMessage.fulfilled, (state, action) => {
-        state.messages.push(action.payload);
-      })
-      .addMatcher(
-        (action) => action.type.endsWith('/pending'),
-        (state) => {
-          state.loading = true;
-          state.error = null;
-        }
-      )
-      .addMatcher(
-        (action) => action.type.endsWith('/rejected'),
-        (state, action: any) => {
-          state.loading = false;
-          state.error = action.payload || 'Error';
-        }
-      );
+    builder.addCase(sendMessage.fulfilled, (state, action) => {
+      // Message handled by socket listener
+    });
   },
 });
 
-export const { setCurrentConversation, clearChat } = chatSlice.actions;
+export const { addMessageToConversation, clearMessages } = chatSlice.actions;
 export default chatSlice.reducer;
