@@ -1,10 +1,8 @@
 // src/navigation/RootNavigator.tsx
 import React, { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
 import { useAppSelector } from '@/store/hooks';
 import MainTabNavigator from './MainTabNavigator';
 import { AuthNavigator } from './AuthNavigator';
-import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 
 /**
  * Root navigator that switches between authentication flow and main app
@@ -30,19 +28,4 @@ const RootNavigator: React.FC = () => {
 	// Otherwise, show authentication flow
 	return isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />;
 };
-
-const styles = StyleSheet.create({
-	loadingContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: COLORS.WHITE,
-	},
-	loadingText: {
-		marginTop: SPACING.MD,
-		fontSize: TYPOGRAPHY.SIZES.MD,
-		color: '#666',
-	},
-});
-
 export default RootNavigator;

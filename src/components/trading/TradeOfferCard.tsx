@@ -1,38 +1,64 @@
 // src/components/trading/TradeOfferCard.tsx
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Trade } from '@/types/trading';
+import { Button, Card } from '@/components/common';
+import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 
 interface TradeOfferCardProps {
   offer: Trade;
-  onAccept: () => void;
-  onDecline: () => void;
+  onAccept: (offer: Trade) => void;
+  onDecline: (offer: Trade) => void;
 }
 
 const TradeOfferCard: React.FC<TradeOfferCardProps> = ({ offer, onAccept, onDecline }) => {
+  const fromUser = offer?.fromUserId ?? 'unknown user';
+
   return (
-    <View style={styles.card}>
-      <Text>Trade offer from {offer.fromUserId}</Text>
+    <Card
+      padding="medium"
+      testID="trade-offer-card"
+      accessibilityLabel={`Trade offer from ${fromUser}`}
+    >
+      <Text style={styles.title}>
+        Trade offer from <Text style={styles.user}>{fromUser}</Text>
+      </Text>
+
       <View style={styles.buttons}>
-        <Button title="Accept" onPress={onAccept} />
-        <Button title="Decline" onPress={onDecline} color="red" />
+        <Button
+          title="Accept"
+          onPress={() => onAccept(offer)}
+          variant="success"
+          testID="accept-offer-button"
+        />
+        <View style={styles.spacer} />
+        <Button
+          title="Decline"
+          onPress={() => onDecline(offer)}
+          variant="danger"
+          testID="decline-offer-button"
+        />
       </View>
-    </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 16,
-    marginVertical: 8,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    elevation: 1,
+  title: {
+    fontSize: TYPOGRAPHY.SIZES.MD,
+    color: COLORS.TEXT_PRIMARY,
+  },
+  user: {
+    fontWeight: TYPOGRAPHY.WEIGHTS.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
   },
   buttons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 16,
+    alignItems: 'center',
+    marginTop: SPACING.MD,
+  },
+  spacer: {
+    width: SPACING.MD,
   },
 });
 

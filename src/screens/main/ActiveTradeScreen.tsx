@@ -18,7 +18,7 @@ const ActiveTradeScreen = () => {
     dispatch(declineTrade(tradeId));
   };
 
-  const renderTrade = ({ item }) => (
+  const renderTrade = ({ item }: { item: any }) => (
     <TradeOfferCard
       offer={item}
       onAccept={() => handleAccept(item.id)}

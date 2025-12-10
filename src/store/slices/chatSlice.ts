@@ -72,7 +72,7 @@ const chatSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(sendMessage.fulfilled, (state, action) => {
+    builder.addCase(sendMessage.fulfilled, (_state, _action) => {
       // Message handled by socket listener
     });
   },

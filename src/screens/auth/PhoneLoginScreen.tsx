@@ -124,7 +124,12 @@ export const PhoneLoginScreen: React.FC = () => {
 				<View style={styles.footer}>
 					<Text style={styles.footerText}>Don't have an account? </Text>
 					<TouchableOpacity onPress={goToSignup} disabled={loading}>
-            <Text style={[styles.signupText, loading && { opacity: 0.6 }]}>
+            <Text
+              style={[
+                styles.signupText,
+                loading ? styles.signupDisabled : undefined,
+              ]}
+            >
               Sign Up
             </Text>
 					</TouchableOpacity>
@@ -184,5 +189,8 @@ const styles = StyleSheet.create({
 		fontSize: TYPOGRAPHY.SIZES.SM,
 		color: COLORS.PRIMARY,
 		fontWeight: TYPOGRAPHY.WEIGHTS.SEMIBOLD,
+	},
+	signupDisabled: {
+		opacity: 0.6,
 	},
 });

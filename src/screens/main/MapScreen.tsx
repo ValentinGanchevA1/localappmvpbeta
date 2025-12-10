@@ -125,7 +125,7 @@ const MapScreen: React.FC = () => {
           styles.centerButton,
           !isMapCentered && styles.recenterButtonActive,
           // Optional: Dim button if no location data
-          (!latitude || !longitude) && { opacity: 0.5 }
+          (!latitude || !longitude) && styles.disabledButton
         ]}
         onPress={centerOnUser}
         disabled={!latitude || !longitude}
@@ -231,6 +231,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: COLORS.WHITE,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 

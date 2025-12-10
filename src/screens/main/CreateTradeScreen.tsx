@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { initiateTrade } from '@/store/slices/tradingSlice';
+import { addTrade } from '@/store/slices/tradingSlice';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 
@@ -26,7 +26,7 @@ const CreateTradeScreen: React.FC = () => {
       itemsRequested: [],
       status: 'pending' as 'pending',
     };
-    dispatch(initiateTrade(newTrade));
+    dispatch(addTrade(newTrade));
     navigation.goBack();
   };
 

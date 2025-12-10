@@ -51,7 +51,7 @@ class ApiClient {
   private onRequest(config: InternalAxiosRequestConfig, enableLogging: boolean): InternalAxiosRequestConfig {
     const token = store.getState().auth.token;
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.authorization = `Bearer ${token}`;
     }
     if (enableLogging) {
       console.log(`[API] Request: ${config.method?.toUpperCase()} ${config.url}`);
@@ -75,7 +75,7 @@ class ApiClient {
           this.failedQueue.push({ resolve, reject });
         })
           .then(token => {
-            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            originalRequest.headers.authorization = 'Bearer ' + token;
             return this.client(originalRequest);
           })
           .catch(err => {
@@ -89,9 +89,10 @@ class ApiClient {
       try {
         const { data } = await this.client.post('/auth/refresh-token');
         const { accessToken } = data;
-        store.dispatch(/* set new token */);
+        const { setToken } = await import('@/store/slices/authSlice');
+        store.dispatch(setToken(accessToken));
         this.processQueue(null, accessToken);
-        originalRequest.headers['Authorization'] = 'Bearer ' + accessToken;
+        originalRequest.headers.authorization = 'Bearer ' + accessToken;
         return this.client(originalRequest);
       } catch (e) {
         this.processQueue(e, null);

@@ -1,5 +1,5 @@
 // src/api/locationApi.ts
-import { axiosInstance } from './axiosInstance';
+import axiosInstance from './axiosInstance';
 
 export interface NearbyUser {
   id: string;

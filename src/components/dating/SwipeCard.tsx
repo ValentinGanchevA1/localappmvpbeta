@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 interface SwipeCardProps {
   profile: DatingProfile;
   onSwipe: (action: 'like' | 'pass' | 'super_like') => void;
-  index: number;
+  index?: number;
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -25,15 +25,13 @@ const SWIPE_THRESHOLD = 120;
 export const SwipeCard: React.FC<SwipeCardProps> = ({
                                                       profile,
                                                       onSwipe,
-                                                      index,
                                                     }) => {
-  const pan = useState(new Animated.ValueXY())[0];
+  const [pan] = useState(new Animated.ValueXY());
 
   const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
-    onPanResponderRelease: (e, { dx, vx }) => {
+    onPanResponderRelease: (_, { dx }) => {
       const direction = dx > 0 ? 1 : -1;
 
       if (Math.abs(dx) > SWIPE_THRESHOLD) {
@@ -115,7 +113,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
           {/* Interests */}
           <View style={styles.interestsContainer}>
             {profile.interests.slice(0, 3).map((interest, idx) => (
-              <View key={idx} style={styles.interestBadge}>
+              <View key={`${interest}-${idx}`} style={styles.interestBadge}>
                 <Text style={styles.interestText}>{interest}</Text>
               </View>
             ))}
