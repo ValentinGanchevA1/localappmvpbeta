@@ -1,4 +1,3 @@
-// src/store/slices/authSlice.ts - UPDATED
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { StorageService } from '@/services/storageService';
 import { User } from '@/types/user';
@@ -19,6 +18,7 @@ const initialState: AuthState = {
   user: null,
 };
 
+// Existing Login Thunk
 export const loginWithPhone = createAsyncThunk<
   { token: string; user: User },
   { phone: string; password: string }
@@ -26,46 +26,34 @@ export const loginWithPhone = createAsyncThunk<
   'auth/loginWithPhone',
   async (credentials, thunkAPI) => {
     try {
-      // Dynamic import to break circular dependency
       const { authService } = await import('@/services/authService');
       const { token, user } = await authService.loginWithPhone(credentials);
       await StorageService.saveAuthToken(token);
       return { token, user };
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message || 'Login failed');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Login failed';
+      return thunkAPI.rejectWithValue(message);
     }
   }
 );
 
-// Apply similar dynamic import to other thunks, e.g., in userSlice.ts:
-export const fetchUserProfile = createAsyncThunk<UserProfile, void>(
-  'user/fetchUserProfile',
-  async (_, thunkAPI) => {
+// ✅ NEW: Missing Register Thunk
+export const registerWithPhone = createAsyncThunk<
+  { token: string; user: User },
+  { phone: string; password: string; name?: string; email?: string }
+>(
+  'auth/registerWithPhone',
+  async (credentials, thunkAPI) => {
     try {
-      const { userService } = await import('@/services/userService');
-      const profile = await userService.getProfile(thunkAPI.getState().auth.user?.id || '');
-      return profile;
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message || 'Failed to fetch profile');
-    }
-  }
-);
-
-// In locationSlice.ts for fetchNearbyData:
-export const fetchNearbyData = createAsyncThunk(
-  'location/fetchNearbyData',
-  async (params: { latitude: number; longitude: number; radius: number }, thunkAPI) => {
-    try {
-      const { locationApi } = await import('@/api/locationApi');
-      const users = await locationApi.getNearbyUsers({
-        latitude: params.latitude,
-        longitude: params.longitude,
-        radius: params.radius,
-        limit: 50,
-      });
-      return users;
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.message || 'Failed to fetch nearby data');
+      // Dynamic import to break circular dependency
+      const { authService } = await import('@/services/authService');
+      // Assuming authService has a 'registerWithPhone' method similar to login
+      const { token, user } = await authService.registerWithPhone(credentials);
+      await StorageService.saveAuthToken(token);
+      return { token, user };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Registration failed';
+      return thunkAPI.rejectWithValue(message);
     }
   }
 );
@@ -74,11 +62,11 @@ export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
-      // ✅ Clear storage on logout
       await StorageService.clearAuth();
       return null;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Logout failed';
+      return rejectWithValue(message);
     }
   }
 );
@@ -97,6 +85,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Login Handlers
       .addCase(loginWithPhone.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -110,11 +99,33 @@ const authSlice = createSlice({
       })
       .addCase(loginWithPhone.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Login failed';
+        state.error = typeof action.payload === 'string' ? action.payload : 'Login failed';
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
       })
+
+      // ✅ NEW: Register Handlers
+      .addCase(registerWithPhone.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerWithPhone.fulfilled, (state, action) => {
+        state.loading = false;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(registerWithPhone.rejected, (state, action) => {
+        state.loading = false;
+        state.error = typeof action.payload === 'string' ? action.payload : 'Registration failed';
+        state.isAuthenticated = false;
+        state.token = null;
+        state.user = null;
+      })
+
+      // Logout Handlers
       .addCase(logout.fulfilled, (state) => {
         state.token = null;
         state.user = null;

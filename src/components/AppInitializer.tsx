@@ -26,32 +26,34 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 		const initializeApp = async () => {
 			if (!isAuthenticated || !user) return; // Wait for auth
 
-			try {
-				// A) Start location tracking
-				await startTracking();
-				console.log('[AppInitializer] Location tracking started');
+			// A) Start location tracking
+			await startTracking();
+			console.log('[AppInitializer] Location tracking started');
 
-				// B) Initialize socket for real-time updates
-				if (socketService && typeof socketService.initialize === 'function') {
-					socketService.initialize(AppEnvironment.SOCKET_URL);
-					console.log('[AppInitializer] Socket initialized');
-				} else {
-					console.warn('[AppInitializer] SocketService not ready or invalid');
-				}
+			// B) Initialize socket for real-time updates
+			if (socketService && typeof socketService.initialize === 'function') {
+				socketService.initialize(AppEnvironment.SOCKET_URL);
+				console.log('[AppInitializer] Socket initialized');
+			} else {
+				console.warn('[AppInitializer] SocketService not ready or invalid');
+			}
 
-				// C) Fetch user profile (background task)
-				dispatch(fetchUserProfile());
-				console.log('[AppInitializer] Profile fetch initiated');
+			// C) Fetch user profile (background task)
+			dispatch(fetchUserProfile());
+			console.log('[AppInitializer] Profile fetch initiated');
 
-				if (__DEV__) {
-					console.log('[AppInitializer] App fully initialized');
-				}
-			} catch (error) {
-				console.error('[AppInitializer] Initialization error:', error);
+			if (__DEV__) {
+				console.log('[AppInitializer] App fully initialized');
 			}
 		};
 
-		void initializeApp();
+		(async () => {
+			try {
+				await initializeApp();
+			} catch (error) {
+				console.error('[AppInitializer] Initialization error:', error);
+			}
+		})();
 
 		return () => {
 			// Cleanup

@@ -11,10 +11,10 @@ const createAxiosInstance = (): AxiosInstance => {
     },
   });
 
-  // Request interceptor with runtime require to avoid circular import issues
+  // Request interceptor with dynamic import to avoid circular import issues
   instance.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-      const { store } = require('@/store');
+    async (config: InternalAxiosRequestConfig) => {
+      const { store } = await import('@/store');
       const token = store.getState().auth.token;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -38,7 +38,7 @@ const createAxiosInstance = (): AxiosInstance => {
     async (error: AxiosError) => {
       if (error.response?.status === 401) {
         const { logout } = await import('@/store/slices/authSlice');
-        const { store } = require('@/store');
+        const { store } = await import('@/store');
         store.dispatch(logout());
       }
       return Promise.reject(error);

@@ -73,7 +73,7 @@ const MainTabNavigator: React.FC = () => {
 				},
 				tabBarLabelStyle: {
 					fontSize: 12,
-					fontWeight: '500',
+					fontWeight: TYPOGRAPHY.WEIGHTS.MEDIUM,
 				},
 				headerStyle: {
 					backgroundColor: COLORS.WHITE,

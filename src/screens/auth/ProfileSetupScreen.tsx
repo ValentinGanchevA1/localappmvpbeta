@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: TYPOGRAPHY.SIZES.LG + 10,
-		fontWeight: TYPOGRAPHY.WEIGHTS.BOLD as any,
+		fontWeight: TYPOGRAPHY.WEIGHTS.BOLD,
 		marginBottom: SPACING.SM,
 		color: COLORS.BLACK,
 	},

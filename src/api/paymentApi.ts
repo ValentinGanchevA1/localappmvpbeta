@@ -1,3 +1,5 @@
+import axiosInstance from '@/api/axiosInstance';
+
 export interface PaymentIntent {
   clientSecret: string;
   amount: number;
@@ -37,5 +39,3 @@ export const paymentApi = {
     return response.data || [];
   },
 };
-
-import axiosInstance from '@/api/axiosInstance';

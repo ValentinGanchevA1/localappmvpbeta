@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
 	View,
 	Text,
@@ -22,17 +22,8 @@ type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 export const PhoneLoginScreen: React.FC = () => {
 	const [phone, setPhone] = useState('');
 	const [password, setPassword] = useState('');
-	const { login, loading, error, clearAuthError } = useAuth();
+	const { login, loading, clearAuthError } = useAuth();
 	const navigation = useNavigation<NavigationProp>();
-
-
-	useEffect(() => {
-		if (error) {
-			Alert.alert('Login Failed', error, [
-				{ text: 'OK', onPress: clearAuthError },
-			]);
-		}
-	}, [error, clearAuthError]);
 
 	const handleLogin = async () => {
 		if (!phone.trim()) {
@@ -54,10 +45,21 @@ export const PhoneLoginScreen: React.FC = () => {
 			if (result.meta.requestStatus === 'fulfilled') {
 				console.log('[PhoneLoginScreen] Login successful');
 			} else if (result.meta.requestStatus === 'rejected') {
+				const errorMessage =
+					typeof result.payload === 'string'
+						? result.payload
+						: 'Invalid credentials. Please try again.';
+				Alert.alert('Login Failed', errorMessage, [
+					{ text: 'OK', onPress: clearAuthError },
+				]);
 				console.error('[PhoneLoginScreen] Login failed:', result.payload);
 			}
 		} catch (err: any) {
 			console.error('[PhoneLoginScreen] Login error:', err);
+			Alert.alert(
+				'Login Error',
+				'An unexpected error occurred during login.'
+			);
 		}
 	};
 

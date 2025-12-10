@@ -1,6 +1,6 @@
 // src/store/slices/taskSlice.ts
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { Task } from '@/types/task';
+import { Task, CreateTaskDto, UpdateTaskDto } from '@/types/task';
 
 interface TaskState {
   tasks: Task[];
@@ -17,11 +17,29 @@ const initialState: TaskState = {
 export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
   // In a real app, you'd fetch this from an API
   const mockTasks: Task[] = [
-    { id: '1', title: 'Implement login screen', description: 'Use React Native and Redux', completed: true, priority: 'high', status: 'done' },
-    { id: '2', title: 'Fix bug in profile page', description: 'Avatar is not updating', completed: false, priority: 'medium', status: 'in-progress' },
-    { id: '3', title: 'Add push notifications', description: 'Use Firebase Cloud Messaging', completed: false, priority: 'low', status: 'todo' },
+    { id: '1', title: 'Implement login screen', description: 'Use React Native and Redux', priority: 'high', status: 'completed' },
+    { id: '2', title: 'Fix bug in profile page', description: 'Avatar is not updating', priority: 'medium', status: 'in_progress' },
+    { id: '3', title: 'Add push notifications', description: 'Use Firebase Cloud Messaging', priority: 'low', status: 'pending' },
   ];
   return mockTasks;
+});
+
+export const createTask = createAsyncThunk('tasks/createTask', async (task: CreateTaskDto) => {
+  // In a real app, you'd make an API call to create the task
+  const newTask: Task = {
+    id: Math.random().toString(36).substr(2, 9),
+    title: task.title,
+    description: task.description,
+    priority: task.priority ?? 'medium',
+    status: 'pending',
+    ...(task.dueDate ? { dueDate: task.dueDate } : {}),
+  };
+  return newTask;
+});
+
+export const updateTask = createAsyncThunk('tasks/updateTask', async (task: { id: string, data: UpdateTaskDto }) => {
+  // In a real app, you'd make an API call to update the task
+  return task;
 });
 
 export const deleteTask = createAsyncThunk('tasks/deleteTask', async (taskId: string) => {
@@ -45,6 +63,15 @@ const taskSlice = createSlice({
       .addCase(fetchTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
         state.tasks = action.payload;
         state.loading = false;
+      })
+      .addCase(createTask.fulfilled, (state, action: PayloadAction<Task>) => {
+        state.tasks.push(action.payload);
+      })
+      .addCase(updateTask.fulfilled, (state, action: PayloadAction<{ id: string, data: UpdateTaskDto }>) => {
+        const index = state.tasks.findIndex(task => task.id === action.payload.id);
+        if (index !== -1) {
+          state.tasks[index] = { ...state.tasks[index], ...action.payload.data };
+        }
       })
       .addCase(deleteTask.fulfilled, (state, action: PayloadAction<string>) => {
         state.tasks = state.tasks.filter(task => task.id !== action.payload);

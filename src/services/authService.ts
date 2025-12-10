@@ -24,17 +24,13 @@ export const authService = {
         token: data.access_token,
         user: {
           id: data.user.id,
-          phone: data.user.phone,
-          username: data.user.name || data.user.email || data.user.phone,
-          name: data.user.name || '',
-          email: data.user.email || '',
-          avatar: data.user.avatar || '',
           profile: {
             id: data.user.id,
             name: data.user.name || '',
             username: data.user.name || data.user.email || data.user.phone,
             email: data.user.email || '',
             avatar: data.user.avatar || '',
+            phone: data.user.phone,
           },
         },
       };
@@ -60,17 +56,13 @@ export const authService = {
         token: data.access_token,
         user: {
           id: data.user.id,
-          phone: data.user.phone,
-          username: data.user.name || data.user.email || data.user.phone,
-          name: data.user.name || '',
-          email: data.user.email || '',
-          avatar: data.user.avatar || '',
           profile: {
             id: data.user.id,
             name: data.user.name || '',
             username: data.user.name || data.user.email || data.user.phone,
             email: data.user.email || '',
             avatar: data.user.avatar || '',
+            phone: data.user.phone,
           },
         },
       };

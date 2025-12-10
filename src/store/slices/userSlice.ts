@@ -30,24 +30,27 @@ export const fetchUserProfile = createAsyncThunk<UserProfile, void, { state: Roo
   }
   try {
     return await userService.getProfile(userId);
-  } catch (error: any) {
-    return rejectWithValue(error.message || 'Failed to fetch profile');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to fetch profile';
+    return rejectWithValue(message);
   }
 });
 
 export const updateUserProfile = createAsyncThunk('user/updateUserProfile', async (profileData: Partial<UserProfile>, { rejectWithValue }) => {
   try {
     return await userService.updateProfile(profileData);
-  } catch (error: any) {
-    return rejectWithValue(error.message || 'Failed to update profile');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update profile';
+    return rejectWithValue(message);
   }
 });
 
 export const updatePreferences = createAsyncThunk('user/updatePreferences', async (preferences: Partial<UserPreferences>, { rejectWithValue }) => {
   try {
     return await userService.updatePreferences(preferences);
-  } catch (error: any) {
-    return rejectWithValue(error.message || 'Failed to update preferences');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update preferences';
+    return rejectWithValue(message);
   }
 });
 
@@ -55,8 +58,9 @@ export const uploadProfileImage = createAsyncThunk('user/uploadProfileImage', as
   try {
     const { avatarUrl } = await userService.uploadProfileImage(imageUri);
     return avatarUrl;
-  } catch (error: any) {
-    return rejectWithValue(error.message || 'Failed to upload image');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to upload image';
+    return rejectWithValue(message);
   }
 });
 
@@ -64,8 +68,9 @@ export const deleteAccount = createAsyncThunk('user/deleteAccount', async (_, { 
   try {
     await userService.deleteAccount();
     return true;
-  } catch (error: any) {
-    return rejectWithValue(error.message || 'Failed to delete account');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to delete account';
+    return rejectWithValue(message);
   }
 });
 
@@ -111,7 +116,7 @@ const userSlice = createSlice({
       })
       .addMatcher(isAnyOf(fetchUserProfile.rejected, updateUserProfile.rejected, updatePreferences.rejected, uploadProfileImage.rejected, deleteAccount.rejected), (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = typeof action.payload === 'string' ? action.payload : 'An unknown error occurred';
       })
       .addMatcher(isAnyOf(fetchUserProfile.fulfilled, updateUserProfile.fulfilled, updatePreferences.fulfilled, uploadProfileImage.fulfilled), (state) => {
         state.loading = false;

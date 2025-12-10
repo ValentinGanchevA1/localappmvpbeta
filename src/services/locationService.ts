@@ -2,7 +2,10 @@ import { Platform, PermissionsAndroid } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { LocationData } from '@/types/location';
 
-// ✅ Configure the library when available (older/newer versions may not expose this API)
+// Helper to wait for a specific time
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
+
+// Configure the library
 try {
   (Geolocation as any).setRNConfiguration?.({
     skipPermissionRequests: false,
@@ -10,7 +13,7 @@ try {
     locationProvider: 'auto',
   });
 } catch {
-  // no-op: method not available in this version
+  // no-op
 }
 
 export const locationService = {
@@ -32,7 +35,13 @@ export const locationService = {
             buttonPositive: 'OK',
           }
         );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
+
+        // ADDED: Small delay to allow OS to propagate permission state
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+           await delay(500);
+           return true;
+        }
+        return false;
       } catch (err) {
         console.warn(err);
         return false;
@@ -57,16 +66,16 @@ export const locationService = {
           });
         },
         (error) => {
-          // Prevent crash by rejecting safely
           console.error('[locationService] getCurrentLocation error:', error);
           reject(error);
         },
         {
+          // Adjusted settings for better stability
           enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 10000,
-          forceRequestLocation: true, // ✅ Ensure it asks for a fresh location
-          showLocationDialog: true,   // ✅ Prompt to turn on GPS if off
+          timeout: 20000,
+          maximumAge: 1000,
+          forceRequestLocation: true,
+          showLocationDialog: true,
         }
       );
     });

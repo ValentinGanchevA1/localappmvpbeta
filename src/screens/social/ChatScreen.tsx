@@ -14,28 +14,30 @@ import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 import { socketService } from '@/services/socketService';
 import { ChatMessage } from '@/types/social';
 import { SocialStackParamList } from '@/types/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 type ChatScreenRouteProp = RouteProp<SocialStackParamList, 'Chat'>;
 
 const ChatScreen: React.FC = () => {
   const route = useRoute<ChatScreenRouteProp>();
   const { userId, username } = route.params;
-  
+  const { user } = useAuth();
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
-  
-  // Mock current user ID (in real app, get from Redux/Auth)
-  const currentUserId = 'current_user_123';
+
+  const currentUserId = user?.id;
 
   useEffect(() => {
+    if (!currentUserId) return;
     // Connect to socket room
     socketService.connect(currentUserId);
 
     // Listen for incoming messages
     const unsubscribe = socketService.onMessage((newMessage) => {
       setMessages((prev) => [...prev, newMessage]);
-      
+
       // Send read receipt if message is from the other person
       if (newMessage.senderId === userId) {
         socketService.sendReadReceipt(newMessage.id, newMessage.senderId);
@@ -45,10 +47,10 @@ const ChatScreen: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [userId]);
+  }, [userId, currentUserId]);
 
   const handleSend = () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || !currentUserId) return;
 
     const newMessage: ChatMessage = {
       id: Date.now().toString(),

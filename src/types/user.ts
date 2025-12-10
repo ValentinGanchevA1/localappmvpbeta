@@ -10,15 +10,11 @@ export interface UserProfile {
     latitude: number;
     longitude: number;
   };
+  phone: string;
 }
 
 export interface User {
   id: string;
-  phone: string;
-  email?: string;
-  username: string;
-  name?: string;
-  avatar?: string;
   profile: UserProfile;
 }
 
@@ -27,5 +23,5 @@ export interface UserPreferences {
     push: boolean;
     email: boolean;
   };
-  theme: 'light' | 'dark' | 'system';
+  theme: 'light' | 'dark';
 }

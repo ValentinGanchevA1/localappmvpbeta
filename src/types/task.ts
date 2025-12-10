@@ -2,17 +2,16 @@
 export interface Task {
   id: string;
   title: string;
-  description: string;
-  completed: boolean;
+  description?: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'todo' | 'in-progress' | 'done';
+  status: 'pending' | 'in_progress' | 'completed';
+  dueDate?: string; // ISO string
 }
 
 export type CreateTaskDto = {
   title: string;
   description?: string;
   priority?: 'low' | 'medium' | 'high';
-  status?: Task['status'];
-  dueDate?: string | Date;
+  dueDate?: string; // ISO string
 };
-export type UpdateTaskDto = Partial<CreateTaskDto> & { id: string };
+export type UpdateTaskDto = Partial<CreateTaskDto> & { status?: 'pending' | 'in_progress' | 'completed' };

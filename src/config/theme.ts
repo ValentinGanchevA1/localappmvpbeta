@@ -26,6 +26,7 @@ export const TYPOGRAPHY = {
   },
   WEIGHTS: {
     REGULAR: '400' as '400',
+    MEDIUM: '500' as '500',
     SEMIBOLD: '600' as '600',
     BOLD: '700' as '700',
   },

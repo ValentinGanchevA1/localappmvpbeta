@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DatingProfile, SwipeAction, Match } from '@/types/dating';
 import { DatingService } from '@/services/datingService';
+import { datingApi } from '@/api/datingApi';
 import { RootState } from '@/store';
 
 interface DatingState {
@@ -33,16 +34,10 @@ export const fetchNearbyDatingProfiles = createAsyncThunk<
   'dating/fetchNearbyProfiles',
   async (params, { rejectWithValue }) => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/dating/nearby?` +
-        `lat=${params.latitude}&lng=${params.longitude}&radius=${params.radius}`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch nearby profiles.');
-      }
-      return await response.json();
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return await datingApi.getNearbyProfiles(params);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch nearby profiles.';
+      return rejectWithValue(message);
     }
   }
 );
@@ -56,20 +51,41 @@ export const generateRecommendations = createAsyncThunk<
   'dating/generateRecommendations',
   async (_, { getState, rejectWithValue }) => {
     const state = getState();
-    const currentUser = state.auth.user?.profile as DatingProfile;
+    const baseProfile = state.user.profile;
     const allProfiles = state.dating.profiles;
 
-    if (!currentUser) {
+    if (!baseProfile) {
       return rejectWithValue('User not authenticated');
     }
 
+    // Type guard to ensure profile has dating fields
+    const isDatingProfile = (p: any): p is DatingProfile => {
+      return (
+        typeof p?.age === 'number' &&
+        typeof p?.gender === 'string' &&
+        typeof p?.lookingFor === 'string' &&
+        Array.isArray(p?.interests) &&
+        p?.location && typeof p.location.latitude === 'number' && typeof p.location.longitude === 'number' &&
+        p?.datingPreferences &&
+        typeof p.datingPreferences.maxDistance === 'number' &&
+        p.datingPreferences.ageRange &&
+        typeof p.datingPreferences.ageRange.min === 'number' &&
+        typeof p.datingPreferences.ageRange.max === 'number'
+      );
+    };
+
+    if (!isDatingProfile(baseProfile)) {
+      return rejectWithValue('User profile incomplete for dating');
+    }
+
+    const currentUser: DatingProfile = baseProfile;
     return DatingService.getRecommendations(currentUser, allProfiles);
   }
 );
 
 // Record swipe action
 export const recordSwipe = createAsyncThunk<
-  SwipeAction,
+  { swipe: SwipeAction; match: Match | null },
   { targetUserId: string; action: 'like' | 'pass' | 'super_like' },
   { rejectValue: string; state: RootState }
 >(
@@ -83,25 +99,10 @@ export const recordSwipe = createAsyncThunk<
     }
 
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/dating/swipe`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId,
-            targetUserId: params.targetUserId,
-            action: params.action,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Swipe failed');
-      }
-      return await response.json();
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return await datingApi.recordSwipe({ ...params, userId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Swipe failed';
+      return rejectWithValue(message);
     }
   }
 );
@@ -140,28 +141,10 @@ const datingSlice = createSlice({
         state.recommendations = action.payload;
       })
       // Record swipe
-      .addCase(recordSwipe.fulfilled, (state, action: PayloadAction<SwipeAction>) => {
-        state.swipeHistory.push(action.payload);
-
-        // Check for mutual match
-        if (action.payload.action === 'like') {
-          const targetSwiped = state.swipeHistory.find(
-            s =>
-              s.userId === action.payload.targetUserId &&
-              s.targetUserId === action.payload.userId &&
-              s.action === 'like'
-          );
-
-          if (targetSwiped) {
-            state.matches.push({
-              id: `match_${Date.now()}`,
-              user1Id: action.payload.userId,
-              user2Id: action.payload.targetUserId,
-              matchedAt: new Date().toISOString(),
-              messages: [],
-              status: 'active',
-            });
-          }
+      .addCase(recordSwipe.fulfilled, (state, action: PayloadAction<{ swipe: SwipeAction; match: Match | null }>) => {
+        state.swipeHistory.push(action.payload.swipe);
+        if (action.payload.match) {
+          state.matches.push(action.payload.match);
         }
       })
       .addCase(recordSwipe.rejected, (state, action) => {

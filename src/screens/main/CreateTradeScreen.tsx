@@ -17,13 +17,12 @@ const CreateTradeScreen: React.FC = () => {
       id: Math.random().toString(36).substr(2, 9),
       fromUserId: 'user1', // This should be the current user's ID
       toUserId,
-      itemsOffered: itemsOffered.split(',').map(name => ({
+      items: itemsOffered.split(',').map(name => ({
         id: Math.random().toString(36).substr(2, 9),
         name,
         description: '',
         ownerId: 'user1',
       })),
-      itemsRequested: [],
       status: 'pending' as 'pending',
     };
     dispatch(addTrade(newTrade));

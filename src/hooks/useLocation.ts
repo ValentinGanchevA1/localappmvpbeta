@@ -31,7 +31,7 @@ export const useLocation = () => {
   const startTracking = useCallback(async () => {
     try {
       console.log('[useLocation] 🚀 Starting location tracking...');
-      
+
       const hasPermission = await handlePermission();
       if (!hasPermission) {
         console.warn('[useLocation] ❌ Location permission denied');
@@ -49,7 +49,7 @@ export const useLocation = () => {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       };
-      
+
       dispatch(updateRegion(initialRegion));
       dispatch(setCurrentLocation(initialLocation));
 
@@ -85,10 +85,11 @@ export const useLocation = () => {
       dispatch(setLocationTracking(true));
       console.log('[useLocation] ✅ Location tracking started');
       return { success: true };
-    } catch (error: any) {
-      console.error('[useLocation] ❌ Error during startup:', error.message);
-      dispatch(setLocationError(error.message));
-      return { success: false, error: error.message };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during location tracking startup.';
+      console.error('[useLocation] ❌ Error during startup:', errorMessage);
+      dispatch(setLocationError(errorMessage));
+      return { success: false, error: errorMessage };
     }
   }, [dispatch, handlePermission]);
 
@@ -105,9 +106,10 @@ export const useLocation = () => {
       const location = await locationService.getCurrentLocation();
       dispatch(setCurrentLocation(location));
       return { success: true, data: location };
-    } catch (error: any) {
-      dispatch(setLocationError(error.message));
-      return { success: false, error: error.message };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while fetching current location.';
+      dispatch(setLocationError(errorMessage));
+      return { success: false, error: errorMessage };
     }
   }, [dispatch]);
 
@@ -133,8 +135,9 @@ export const useLocation = () => {
           })
         ).unwrap();
         return { success: true, data: result };
-      } catch (error: any) {
-        return { success: false, error: error.message };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred while refreshing nearby users.';
+        return { success: false, error: errorMessage };
       }
     },
     [dispatch, permission, locationState]

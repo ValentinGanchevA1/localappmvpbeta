@@ -18,7 +18,7 @@ interface GetNearbyUsersParams {
 
 export const locationApi = {
   async getNearbyUsers(params: GetNearbyUsersParams): Promise<NearbyUser[]> {
-    const response = await axiosInstance.get('/location/nearby', { params });
+    const response = await axiosInstance.get('/api/location/nearby', { params });
     return response.data;
   },
 };

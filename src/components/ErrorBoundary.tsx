@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 	},
 	title: {
 		fontSize: TYPOGRAPHY.SIZES.LG + 6,
-		fontWeight: TYPOGRAPHY.WEIGHTS.BOLD as any,
+		fontWeight: TYPOGRAPHY.WEIGHTS.BOLD,
 		color: COLORS.DANGER,
 		marginTop: SPACING.MD,
 		marginBottom: SPACING.SM,
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
 	},
 	errorDetailsTitle: {
 		fontSize: TYPOGRAPHY.SIZES.SM,
-		fontWeight: TYPOGRAPHY.WEIGHTS.BOLD as any,
+		fontWeight: TYPOGRAPHY.WEIGHTS.BOLD,
 		color: COLORS.DANGER,
 		marginBottom: SPACING.SM,
 	},
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
 	primaryButtonText: {
 		color: COLORS.WHITE,
 		fontSize: TYPOGRAPHY.SIZES.MD,
-		fontWeight: TYPOGRAPHY.WEIGHTS.SEMIBOLD as any,
+		fontWeight: TYPOGRAPHY.WEIGHTS.SEMIBOLD,
 		marginLeft: SPACING.SM,
 	},
 	supportText: {

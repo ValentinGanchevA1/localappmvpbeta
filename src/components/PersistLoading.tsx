@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		fontSize: TYPOGRAPHY.SIZES.LG,
-		fontWeight: TYPOGRAPHY.WEIGHTS.SEMIBOLD as any,
+		fontWeight: TYPOGRAPHY.WEIGHTS.SEMIBOLD,
 		color: '#333',
 		marginTop: SPACING.SM,
 	},

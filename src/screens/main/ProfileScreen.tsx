@@ -34,14 +34,16 @@ export const ProfileScreen: React.FC = () => {
 	return (
 		<ScrollView style={styles.container} contentContainerStyle={styles.content}>
 			<View style={styles.header}>
-				<Avatar
-					imageUri={user?.avatar}
-					name={user?.name}
-					size="large"
-				/>
-				<Text style={styles.name}>{user?.name || 'User'}</Text>
-				<Text style={styles.phone}>{user?.phone || 'No phone'}</Text>
-				{user?.email && <Text style={styles.email}>{user.email}</Text>}
+    <Avatar
+                    imageUri={user?.profile?.avatar}
+                    name={user?.profile?.name}
+                    size="large"
+                />
+                <Text style={styles.name}>{user?.profile?.name || 'User'}</Text>
+                <Text style={styles.phone}>{user?.profile?.phone || 'No phone'}</Text>
+                {user?.profile?.email && (
+                    <Text style={styles.email}>{user.profile.email}</Text>
+                )}
 			</View>
 
 			<View style={styles.section}>
