@@ -1,14 +1,15 @@
-import { SocketService } from './socketService';
+import { socketService } from './socketService';
+import { addNotification } from '@/store/slices/notificationsSlice';
 
 export class NotificationService {
-  private socket = SocketService.getInstance();
+  private socket = socketService;
 
   setupListeners(dispatch: any): void {
-    this.socket.on('notification:received', (notification) => {
+    this.socket.getSocket()?.on('notification:received', (notification) => {
       dispatch(addNotification(notification));
     });
 
-    this.socket.on('nearbyUser:detected', (user) => {
+    this.socket.getSocket()?.on('nearbyUser:detected', (user) => {
       dispatch(
         addNotification({
           id: `nearby-${user.id}`,
@@ -22,7 +23,7 @@ export class NotificationService {
       );
     });
 
-    this.socket.on('message:received', (message) => {
+    this.socket.getSocket()?.on('message:received', (message) => {
       dispatch(
         addNotification({
           id: `msg-${message.id}`,
@@ -38,8 +39,8 @@ export class NotificationService {
   }
 
   cleanup(): void {
-    this.socket.off('notification:received');
-    this.socket.off('nearbyUser:detected');
-    this.socket.off('message:received');
+    this.socket.getSocket()?.off('notification:received');
+    this.socket.getSocket()?.off('nearbyUser:detected');
+    this.socket.getSocket()?.off('message:received');
   }
 }

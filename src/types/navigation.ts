@@ -18,7 +18,9 @@ export type SocialStackParamList = {
 export type MainTabParamList = {
   Map: undefined;
   Social: { screen: keyof SocialStackParamList, params?: any };
+  Dating: undefined;
   Trading: undefined;
+  CreateTrade: undefined;
   Notifications: undefined;
   Profile: undefined;
 };

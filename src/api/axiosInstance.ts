@@ -1,7 +1,6 @@
+// src/api/axiosInstance.ts
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
-import { store } from '@/store';
 import { AppEnvironment } from '@/config/environment';
-import { logout } from '@/store/slices/authSlice';
 
 const createAxiosInstance = (): AxiosInstance => {
   const instance = axios.create({
@@ -12,14 +11,15 @@ const createAxiosInstance = (): AxiosInstance => {
     },
   });
 
-  // Request interceptor
+  // Request interceptor with runtime require to avoid circular import issues
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+      const { store } = require('@/store');
       const token = store.getState().auth.token;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      if (AppEnvironment.ENABLE_LOGGING) {
+      if (AppEnvironment.ENABLE_API_LOGGING) {
         console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
       }
       return config;
@@ -27,16 +27,18 @@ const createAxiosInstance = (): AxiosInstance => {
     (error) => Promise.reject(error)
   );
 
-  // Response interceptor
+  // Response interceptor with dynamic import for logout
   instance.interceptors.response.use(
     (response) => {
-      if (AppEnvironment.ENABLE_LOGGING) {
+      if (AppEnvironment.ENABLE_API_LOGGING) {
         console.log(`[API] Response: ${response.status}`);
       }
       return response;
     },
-    (error: AxiosError) => {
+    async (error: AxiosError) => {
       if (error.response?.status === 401) {
+        const { logout } = await import('@/store/slices/authSlice');
+        const { store } = require('@/store');
         store.dispatch(logout());
       }
       return Promise.reject(error);

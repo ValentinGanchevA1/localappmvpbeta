@@ -1,16 +1,25 @@
-export interface User {
+// src/types/user.ts
+export interface UserProfile {
   id: string;
   name: string;
+  username: string;
   email?: string;
-  phone?: string;
   avatar?: string;
+  bio?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
-export interface UserProfile extends User {
-  bio?: string;
-  location?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+export interface User {
+  id: string;
+  phone: string;
+  email?: string;
+  username: string;
+  name?: string;
+  avatar?: string;
+  profile: UserProfile;
 }
 
 export interface UserPreferences {
@@ -18,13 +27,5 @@ export interface UserPreferences {
     push: boolean;
     email: boolean;
   };
-  theme: 'light' | 'dark';
-  language?: string;
-}
-
-export interface UserProfileUpdate {
-  name?: string;
-  email?: string;
-  bio?: string;
-  location?: string;
+  theme: 'light' | 'dark' | 'system';
 }

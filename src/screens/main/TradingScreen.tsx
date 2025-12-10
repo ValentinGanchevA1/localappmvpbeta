@@ -8,14 +8,15 @@ import { acceptTrade, declineTrade } from '@/store/slices/tradingSlice';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 import { MainTabNavigationProp } from '@/types/navigation';
+import { Trade } from '@/types/trading';
 
 const TradingScreen: React.FC = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<MainTabNavigationProp<'Trading'>>();
   const { trades } = useSelector((state: RootState) => state.trading);
 
-  const activeTrades = trades.filter(t => t.status === 'pending');
-  const tradeHistory = trades.filter(t => t.status !== 'pending');
+  const activeTrades = trades.filter((t: Trade) => t.status === 'pending');
+  const tradeHistory = trades.filter((t: Trade) => t.status !== 'pending');
 
   const handleAccept = (tradeId: string) => {
     dispatch(acceptTrade(tradeId));
@@ -37,7 +38,7 @@ const TradingScreen: React.FC = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Active Trades</Text>
         {activeTrades.length > 0 ? (
-          activeTrades.map(trade => (
+          activeTrades.map((trade: Trade) => (
             <TradeOfferCard
               key={trade.id}
               offer={trade}
@@ -53,7 +54,7 @@ const TradingScreen: React.FC = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Trade History</Text>
         {tradeHistory.length > 0 ? (
-          tradeHistory.map(trade => (
+          tradeHistory.map((trade: Trade) => (
             <View key={trade.id} style={styles.historyItem}>
               <Text>Trade with {trade.toUserId}</Text>
               <Text>Status: {trade.status}</Text>

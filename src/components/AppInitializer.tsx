@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from '@/hooks/useLocation';
 import { useAppDispatch } from '@/store/hooks';
 import { fetchUserProfile } from '@/store/slices/userSlice';
-// ✅ FIX 1: Import the instance (lowercase), not the Class
 import { socketService } from '@/services/socketService';
 import { AppEnvironment } from '@/config/environment';
 
@@ -33,7 +32,6 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 				console.log('[AppInitializer] Location tracking started');
 
 				// B) Initialize socket for real-time updates
-				// ✅ FIX 2: Use the instance directly. No .getInstance() needed.
 				if (socketService && typeof socketService.initialize === 'function') {
 					socketService.initialize(AppEnvironment.SOCKET_URL);
 					console.log('[AppInitializer] Socket initialized');
@@ -53,7 +51,7 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 			}
 		};
 
-		initializeApp();
+		void initializeApp();
 
 		return () => {
 			// Cleanup

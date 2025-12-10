@@ -23,6 +23,7 @@ import { DatingProfile } from '@/types/dating';
 export const SwipeScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const { latitude, longitude } = useLocation();
+  const { user } = useAppSelector(state => state.auth);
   const { recommendations, loading, matches, profiles } = useAppSelector(
     state => state.dating
   );
@@ -42,10 +43,10 @@ export const SwipeScreen: React.FC = () => {
 
   // Generate recommendations when profiles are fetched
   useEffect(() => {
-    if (profiles.length > 0) {
+    if (profiles.length > 0 && user) {
       dispatch(generateRecommendations());
     }
-  }, [profiles, dispatch]);
+  }, [profiles, user, dispatch]);
 
   const handleSwipe = (action: 'like' | 'pass' | 'super_like') => {
     const currentProfile = recommendations[0];
@@ -86,7 +87,7 @@ export const SwipeScreen: React.FC = () => {
       </View>
 
       <View style={styles.swipeStack}>
-        {recommendations.slice(0, 2).reverse().map((profile: DatingProfile, index: number) => (
+        {recommendations.slice(0, 2).reverse().map((profile, index) => (
           <SwipeCard
             key={profile.id}
             profile={profile}
@@ -201,5 +202,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-export default SwipeScreen;

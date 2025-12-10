@@ -37,3 +37,5 @@ export const paymentApi = {
     return response.data || [];
   },
 };
+
+import axiosInstance from '@/api/axiosInstance';

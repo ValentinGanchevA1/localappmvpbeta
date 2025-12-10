@@ -1,4 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction, isAnyOf } from '@reduxjs/toolkit';
+// src/store/slices/locationSlice.ts - FIXED
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { locationApi, NearbyUser } from '@/api/locationApi';
 import { Region } from 'react-native-maps';
 
@@ -26,18 +27,34 @@ const initialState: LocationState = {
   lastUpdated: null,
 };
 
-// ✅ Properly defined async thunk
+// ✅ FIXED: Properly typed async thunk with error handling
 export const fetchNearbyData = createAsyncThunk<
-  NearbyUser[],
-  { latitude: number; longitude: number; radius?: number },
-  { rejectValue: string }
+  NearbyUser[], // Return type
+  { latitude: number; longitude: number; radius?: number }, // Param type
+  { rejectValue: string } // Error type
 >(
   'location/fetchNearbyData',
   async (params, { rejectWithValue }) => {
     try {
-      return await locationApi.getNearbyUsers(params);
+      console.log('[Location] Fetching nearby users at', params);
+
+      const result = await locationApi.getNearbyUsers({
+        latitude: params.latitude,
+        longitude: params.longitude,
+        radius: params.radius || 5000,
+        limit: 50,
+      });
+
+      if (!Array.isArray(result)) {
+        throw new Error('Invalid response format');
+      }
+
+      console.log('[Location] ✅ Fetched', result.length, 'nearby users');
+      return result;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to fetch nearby users');
+      const message = error?.message || 'Network error - is backend running on :3001?';
+      console.error('[Location] ❌ Fetch failed:', message);
+      return rejectWithValue(message);
     }
   }
 );
@@ -46,11 +63,7 @@ const locationSlice = createSlice({
   name: 'location',
   initialState,
   reducers: {
-    // ✅ Synchronous actions for immediate updates
-    setCurrentLocation: (
-      state,
-      action: PayloadAction<{ latitude: number; longitude: number; accuracy?: number | null }>
-    ) => {
+    setCurrentLocation: (state, action: PayloadAction<{ latitude: number; longitude: number; accuracy?: number }>) => {
       state.latitude = action.payload.latitude;
       state.longitude = action.payload.longitude;
       state.accuracy = action.payload.accuracy ?? null;
@@ -61,34 +74,46 @@ const locationSlice = createSlice({
     },
     setLocationError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
+      if (action.payload) {
+        state.loading = false; // ✅ Reset loading on error
+      }
     },
     updateRegion: (state, action: PayloadAction<Region>) => {
       state.region = action.payload;
     },
+    clearLocationError: (state) => {
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // Pending state
+      // Pending
       .addCase(fetchNearbyData.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      // Success state
+      // Success - ✅ ALWAYS reset loading flag
       .addCase(fetchNearbyData.fulfilled, (state, action) => {
         state.nearbyUsers = action.payload || [];
-        state.loading = false; // ✅ CRITICAL: Always reset loading
+        state.loading = false;
         state.error = null;
+        state.lastUpdated = Date.now();
+
         if (__DEV__) {
-          console.log('[locationSlice] Nearby users fetched:', action.payload?.length || 0);
+          console.log('[Location] State updated:', {
+            nearbyUsersCount: action.payload?.length,
+            loading: false,
+          });
         }
       })
-      // Error state
+      // Error - ✅ ALWAYS reset loading flag
       .addCase(fetchNearbyData.rejected, (state, action) => {
-        state.loading = false; // ✅ CRITICAL: Always reset loading on error
-        state.error = action.payload || 'Unknown error occurred';
+        state.loading = false; // ✅ CRITICAL: Reset loading!
+        state.error = action.payload || 'Unknown error';
         state.nearbyUsers = []; // Clear stale data
+
         if (__DEV__) {
-          console.error('[locationSlice] Nearby users fetch failed:', state.error);
+          console.error('[Location] ❌ Fetch rejected:', state.error);
         }
       });
   },
@@ -99,6 +124,7 @@ export const {
   setLocationTracking,
   setLocationError,
   updateRegion,
+  clearLocationError,
 } = locationSlice.actions;
 
 export default locationSlice.reducer;

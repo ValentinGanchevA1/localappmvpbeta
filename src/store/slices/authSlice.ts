@@ -1,8 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { ValidationUtils } from '@/utils/validation';
+// src/store/slices/authSlice.ts - UPDATED
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { StorageService } from '@/services/storageService';
 import { User } from '@/types/user';
-import { SocketService } from '@/services/socketService';
-import axiosInstance from '@/api/axiosInstance';
 
 interface AuthState {
   token: string | null;
@@ -20,133 +19,66 @@ const initialState: AuthState = {
   user: null,
 };
 
-interface LoginCredentials {
-  phone: string;
-  password: string;
-}
-
-interface RegisterCredentials extends LoginCredentials {
-  name?: string;
-  email?: string;
-}
-
-interface AuthResponse {
-  access_token: string;
-  user: User;
-}
-
 export const loginWithPhone = createAsyncThunk<
-  AuthResponse,
-  LoginCredentials,
-  {
-    rejectValue: string;
-  }
+  { token: string; user: User },
+  { phone: string; password: string }
 >(
   'auth/loginWithPhone',
-  async (credentials, { rejectWithValue }) => {
+  async (credentials, thunkAPI) => {
     try {
-      const payload = {
-        phone: String(credentials.phone).trim(),
-        password: String(credentials.password).trim(),
-      };
-
-      // Validate before sending
-      if (!ValidationUtils.validateAuthPayload(payload)) {
-        return rejectWithValue('Invalid phone number or password format');
-      }
-
-      if (__DEV__) {
-        console.log('[authSlice] Attempting login with:', { phone: payload.phone });
-      }
-
-      // Make API request
-      const response = await axiosInstance.post<AuthResponse>(
-        '/auth/login',
-        payload
-      );
-
-      if (!response.data.access_token || !response.data.user) {
-        return rejectWithValue('Invalid server response - missing token or user');
-      }
-
-      if (__DEV__) {
-        console.log('[authSlice] Login successful, token received');
-      }
-
-      return response.data;
+      // Dynamic import to break circular dependency
+      const { authService } = await import('@/services/authService');
+      const { token, user } = await authService.loginWithPhone(credentials);
+      await StorageService.saveAuthToken(token);
+      return { token, user };
     } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        'Login failed. Please try again.';
-
-      if (__DEV__) {
-        console.error('[authSlice] Login error:', {
-          status: error.response?.status,
-          message: errorMessage,
-          data: error.response?.data,
-        });
-      }
-
-      return rejectWithValue(errorMessage);
+      return thunkAPI.rejectWithValue(error.message || 'Login failed');
     }
   }
 );
 
-export const registerWithPhone = createAsyncThunk<
-  AuthResponse,
-  RegisterCredentials,
-  {
-    rejectValue: string;
-  }
->(
-  'auth/registerWithPhone',
-  async (credentials, { rejectWithValue }) => {
+// Apply similar dynamic import to other thunks, e.g., in userSlice.ts:
+export const fetchUserProfile = createAsyncThunk<UserProfile, void>(
+  'user/fetchUserProfile',
+  async (_, thunkAPI) => {
     try {
-      const payload: any = {
-        phone: String(credentials.phone).trim(),
-        password: String(credentials.password).trim(),
-      };
-
-      if (credentials.name) payload.name = String(credentials.name).trim();
-      if (credentials.email) payload.email = String(credentials.email).trim();
-
-      // Validate payload
-      if (!ValidationUtils.validateRegisterPayload(payload)) {
-        return rejectWithValue('Invalid registration data');
-      }
-
-      if (__DEV__) {
-        console.log('[authSlice] Attempting registration with:', {
-          phone: payload.phone,
-        });
-      }
-
-      const response = await axiosInstance.post<AuthResponse>(
-        '/auth/register',
-        payload
-      );
-
-      if (!response.data.access_token || !response.data.user) {
-        return rejectWithValue('Invalid server response');
-      }
-
-      if (__DEV__) {
-        console.log('[authSlice] Registration successful');
-      }
-
-      return response.data;
+      const { userService } = await import('@/services/userService');
+      const profile = await userService.getProfile(thunkAPI.getState().auth.user?.id || '');
+      return profile;
     } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        'Registration failed. Please try again.';
+      return thunkAPI.rejectWithValue(error.message || 'Failed to fetch profile');
+    }
+  }
+);
 
-      if (__DEV__) {
-        console.error('[authSlice] Registration error:', errorMessage);
-      }
+// In locationSlice.ts for fetchNearbyData:
+export const fetchNearbyData = createAsyncThunk(
+  'location/fetchNearbyData',
+  async (params: { latitude: number; longitude: number; radius: number }, thunkAPI) => {
+    try {
+      const { locationApi } = await import('@/api/locationApi');
+      const users = await locationApi.getNearbyUsers({
+        latitude: params.latitude,
+        longitude: params.longitude,
+        radius: params.radius,
+        limit: 50,
+      });
+      return users;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message || 'Failed to fetch nearby data');
+    }
+  }
+);
 
-      return rejectWithValue(errorMessage);
+export const logout = createAsyncThunk(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      // ✅ Clear storage on logout
+      await StorageService.clearAuth();
+      return null;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -155,9 +87,9 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    logout: (_state) => {
-      SocketService.getInstance().disconnect();
-      return initialState;
+    setToken: (state, action: PayloadAction<string | null>) => {
+      state.token = action.payload;
+      state.isAuthenticated = !!action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -165,58 +97,32 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login lifecycle
       .addCase(loginWithPhone.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(loginWithPhone.fulfilled, (state, action) => {
         state.loading = false;
-        state.token = action.payload.access_token;
+        state.token = action.payload.token;
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.error = null;
-
-        if (__DEV__) {
-          console.log('[authSlice] Login fulfilled, state updated');
-        }
       })
       .addCase(loginWithPhone.rejected, (state, action) => {
-        state.loading = false; // ✓ CRITICAL: Reset loading flag
+        state.loading = false;
         state.error = action.payload || 'Login failed';
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
-
-        if (__DEV__) {
-          console.error('[authSlice] Login rejected:', state.error);
-        }
       })
-      // Register lifecycle
-      .addCase(registerWithPhone.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(registerWithPhone.fulfilled, (state, action) => {
-        state.loading = false;
-        state.token = action.payload.access_token;
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
-        state.error = null;
-
-        if (__DEV__) {
-          console.log('[authSlice] Registration fulfilled');
-        }
-      })
-      .addCase(registerWithPhone.rejected, (state, action) => {
-        state.loading = false; // ✓ CRITICAL: Reset loading flag
-        state.error = action.payload || 'Registration failed';
-        state.isAuthenticated = false;
+      .addCase(logout.fulfilled, (state) => {
         state.token = null;
         state.user = null;
+        state.isAuthenticated = false;
+        state.error = null;
       });
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { setToken, clearError } = authSlice.actions;
 export default authSlice.reducer;

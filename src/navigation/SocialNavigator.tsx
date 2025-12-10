@@ -1,18 +1,19 @@
-
+// src/navigation/SocialNavigator.tsx
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ChatScreen } from '@/screens/social';
-import { SocialStackParamList } from '@/types/navigation';
+import { View } from 'react-native';
 
-const Stack = createNativeStackNavigator<SocialStackParamList>();
+const Stack = {
+  Navigator: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
+  Screen: ({ component: Component }: { component: React.FC }) => <Component />,
+};
+
 
 const SocialNavigator: React.FC = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="Chat"
         component={ChatScreen}
-        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

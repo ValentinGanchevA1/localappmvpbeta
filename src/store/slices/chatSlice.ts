@@ -1,6 +1,6 @@
 // src/store/slices/chatSlice.ts (ENHANCED)
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { SocketService } from '@/services/socketService';
+import { socketService } from '@/services/socketService';
 
 interface Message {
   id: string;
@@ -32,18 +32,30 @@ export const sendMessage = createAsyncThunk(
     content: string;
     recipientId: string;
   }) => {
-    const socket = SocketService.getInstance();
+    const sock = socketService.getSocket();
+    if (!sock) {
+      throw new Error('Socket not connected');
+    }
     return new Promise((resolve, reject) => {
-      socket.emit('message:send', payload);
+      sock.emit('message:send', payload);
 
       // Listen for acknowledgment
-      socket.once('message:sent', (response) => {
+      const onSent = (response: any) => {
+        cleanup();
         resolve(response);
-      });
-
-      socket.once('message:error', (error) => {
+      };
+      const onError = (error: any) => {
+        cleanup();
         reject(error);
-      });
+      };
+
+      const cleanup = () => {
+        sock.off('message:sent', onSent);
+        sock.off('message:error', onError);
+      };
+
+      sock.once('message:sent', onSent);
+      sock.once('message:error', onError);
     });
   }
 );

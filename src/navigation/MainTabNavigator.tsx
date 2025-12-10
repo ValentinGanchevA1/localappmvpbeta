@@ -7,11 +7,9 @@ import {
   MapScreen,
   ProfileScreen,
   NotificationsScreen,
-  TaskListScreen,
-  TaskFormScreen,
   TradingScreen,
-  CreateTradeScreen,
 } from '@/screens/main';
+import { SwipeScreen } from '@/screens/dating/SwipeScreen';
 import SocialNavigator from './SocialNavigator';
 import { MainTabParamList } from '@/types/navigation';
 import { COLORS, TYPOGRAPHY } from '@/config/theme';
@@ -33,6 +31,9 @@ const getTabBarIcon = (
 			break;
     case 'Social':
       iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+      break;
+    case 'Dating':
+      iconName = focused ? 'heart' : 'heart-outline';
       break;
 		case 'Notifications':
 			iconName = focused ? 'notifications' : 'notifications-outline';
@@ -102,6 +103,15 @@ const MainTabNavigator: React.FC = () => {
         component={SocialNavigator}
         options={{
           title: 'Social',
+          headerShown: false,
+        }}
+      />
+
+      <Tab.Screen
+        name="Dating"
+        component={SwipeScreen}
+        options={{
+          title: 'Dating',
           headerShown: false,
         }}
       />

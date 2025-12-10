@@ -1,33 +1,34 @@
-
-// src/store/store.ts
+// src/store/store.ts - CORRECTED
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import authReducer from './slices/authSlice';
 import locationReducer from './slices/locationSlice';
 import userReducer from './slices/userSlice';
 import themeReducer from './slices/themeSlice';
-import mapReducer from './slices/mapSlice';
-import taskReducer from './slices/taskSlice';
-import tradingReducer from './slices/tradingSlice';
 import datingReducer from './slices/datingSlice';
+import tradingReducer from './slices/tradingSlice';
+import taskReducer from './slices/taskSlice';
+
+// Whitelist specific slices to persist (don't persist everything)
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+  whitelist: ['auth', 'theme', 'user'], // ✅ Only persist essential data
+  blacklist: ['location', 'dating', 'trading', 'task'], // ❌ Don't persist real-time data
+  version: 1,
+};
 
 const rootReducer = combineReducers({
   auth: authReducer,
   location: locationReducer,
   user: userReducer,
   theme: themeReducer,
-  map: mapReducer,
-  task: taskReducer,
-  trading: tradingReducer,
   dating: datingReducer,
+  trading: tradingReducer,
+  task: taskReducer,
 });
-
-const persistConfig = {
-  key: 'root',
-  storage: AsyncStorage,
-  whitelist: ['auth', 'theme'], // Persist auth and theme slices
-};
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
@@ -35,7 +36,12 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // Ignore non-serializable actions from redux-persist
+      serializableCheck: {
+        // ✅ Ignore redux-persist actions
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
+        ignoredPaths: ['_persist'],
+      },
     }),
 });
 

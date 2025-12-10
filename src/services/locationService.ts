@@ -2,12 +2,16 @@ import { Platform, PermissionsAndroid } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { LocationData } from '@/types/location';
 
-// ✅ FIX: Configure the library to act consistently
-Geolocation.setRNConfiguration({
-  skipPermissionRequests: false,
-  authorizationLevel: 'whenInUse',
-  locationProvider: 'auto',
-});
+// ✅ Configure the library when available (older/newer versions may not expose this API)
+try {
+  (Geolocation as any).setRNConfiguration?.({
+    skipPermissionRequests: false,
+    authorizationLevel: 'whenInUse',
+    locationProvider: 'auto',
+  });
+} catch {
+  // no-op: method not available in this version
+}
 
 export const locationService = {
   async requestLocationPermission(): Promise<boolean> {
@@ -71,8 +75,8 @@ export const locationService = {
   watchPosition(
     onSuccess: (location: LocationData) => void,
     onError?: (error: any) => void
-  ): number {
-    return Geolocation.watchPosition(
+  ): () => void {
+    const id = Geolocation.watchPosition(
       (position) => {
         onSuccess({
           latitude: position.coords.latitude,
@@ -86,9 +90,10 @@ export const locationService = {
         enableHighAccuracy: true,
         distanceFilter: 50,
         interval: 10000,
-        forceRequestLocation: true
+        forceRequestLocation: true,
       }
     );
+    return () => Geolocation.clearWatch(id);
   },
 
   stopWatching(watchId: number): void {
