@@ -16,6 +16,105 @@ const users = new Map(); // phone -> user
 const conversations = new Map(); // conversationId -> messages[]
 const notifications = new Map(); // userId -> notifications[]
 
+
+// ============================================================================
+// DATING ENDPOINTS
+// ============================================================================
+
+app.get('/api/dating/nearby', (req, res) => {
+  const { lat, lng, radius = 50 } = req.query;
+
+  // Mock nearby dating profiles
+  const mockProfiles = [
+    {
+      id: 'user_sarah_1',
+      name: 'Sarah',
+      age: 26,
+      gender: 'female',
+      lookingFor: 'male',
+      photos: ['https://via.placeholder.com/400x600?text=Sarah'],
+      bio: 'Adventure seeker, loves hiking and travel ✈️',
+      interests: ['hiking', 'travel', 'photography', 'cooking'],
+      location: { latitude: parseFloat(lat) + 0.01, longitude: parseFloat(lng) + 0.01 },
+      datingPreferences: {
+        ageRange: { min: 24, max: 35 },
+        maxDistance: 50,
+        sharedInterests: true,
+      },
+      createdAt: new Date(),
+    },
+    {
+      id: 'user_emma_2',
+      name: 'Emma',
+      age: 24,
+      gender: 'female',
+      lookingFor: 'male',
+      photos: ['https://via.placeholder.com/400x600?text=Emma'],
+      bio: 'Artist & coffee lover ☕',
+      interests: ['art', 'coffee', 'books', 'music'],
+      location: { latitude: parseFloat(lat) + 0.02, longitude: parseFloat(lng) - 0.01 },
+      datingPreferences: {
+        ageRange: { min: 25, max: 33 },
+        maxDistance: 50,
+        sharedInterests: true,
+      },
+      createdAt: new Date(),
+    },
+    {
+      id: 'user_olivia_3',
+      name: 'Olivia',
+      age: 28,
+      gender: 'female',
+      lookingFor: 'male',
+      photos: ['https://via.placeholder.com/400x600?text=Olivia'],
+      bio: 'Fitness enthusiast 💪 Always up for new experiences',
+      interests: ['fitness', 'yoga', 'cooking', 'travel'],
+      location: { latitude: parseFloat(lat) - 0.015, longitude: parseFloat(lng) + 0.015 },
+      datingPreferences: {
+        ageRange: { min: 26, max: 36 },
+        maxDistance: 50,
+        sharedInterests: true,
+      },
+      createdAt: new Date(),
+    },
+  ];
+
+  console.log(`[Dating] Fetched ${mockProfiles.length} nearby profiles`);
+  res.json(mockProfiles);
+});
+
+app.post('/api/dating/swipe', (req, res) => {
+  const { userId, targetUserId, action } = req.body;
+
+  const swipeRecord = {
+    id: `swipe_${Date.now()}`,
+    userId,
+    targetUserId,
+    action,
+    timestamp: new Date(),
+  };
+
+  console.log(`[Dating] Swipe recorded: ${userId} ${action} ${targetUserId}`);
+
+  res.status(201).json(swipeRecord);
+});
+
+app.get('/api/dating/matches', (req, res) => {
+  // Return user's matches
+  const mockMatches = [
+    {
+      id: 'match_1',
+      user1Id: 'current_user',
+      user2Id: 'user_sarah_1',
+      matchedAt: new Date(Date.now() - 86400000),
+      messages: [],
+      status: 'active',
+    },
+  ];
+
+  res.json(mockMatches);
+});
+
 // ============================================================================
 // AUTH ENDPOINTS
 // ============================================================================

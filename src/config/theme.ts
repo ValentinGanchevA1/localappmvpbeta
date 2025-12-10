@@ -29,6 +29,10 @@ export const TYPOGRAPHY = {
     SEMIBOLD: '600' as '600',
     BOLD: '700' as '700',
   },
+  H1: {
+    fontSize: 32,
+    fontWeight: '700' as '700',
+  },
   H2: {
     fontSize: 24,
     fontWeight: '700' as '700',

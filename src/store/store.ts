@@ -10,6 +10,7 @@ import themeReducer from './slices/themeSlice';
 import mapReducer from './slices/mapSlice';
 import taskReducer from './slices/taskSlice';
 import tradingReducer from './slices/tradingSlice';
+import datingReducer from './slices/datingSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
   map: mapReducer,
   task: taskReducer,
   trading: tradingReducer,
+  dating: datingReducer,
 });
 
 const persistConfig = {
