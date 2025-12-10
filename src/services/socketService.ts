@@ -1,47 +1,73 @@
-import { AppEnvironment } from '@/config/environment';
+import io, { Socket } from 'socket.io-client';
 import { ChatMessage } from '@/types/social';
 
-// Singleton service for WebSocket connections
 class SocketService {
-  private socket: WebSocket | null = null;
-  private messageHandlers: ((msg: ChatMessage) => void)[] = [];
+  private socket: Socket | null = null;
 
-  connect(userId: string) {
-    if (this.socket) return;
+  public initialize(url: string): void {
+    if (this.socket) {
+      return;
+    }
 
-    // In production, use a robust library like socket.io-client
-    // This is a native WebSocket implementation example
-    this.socket = new WebSocket(`${AppEnvironment.API_BASE_URL.replace('http', 'ws')}/chat?userId=${userId}`);
+    console.log('[SocketService] Initializing with URL:', url);
 
-    this.socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      this.messageHandlers.forEach(handler => handler(data));
-    };
+    try {
+      this.socket = io(url, {
+        transports: ['websocket'],
+        autoConnect: false, // Connect manually
+        reconnection: true,
+      });
 
-    this.socket.onopen = () => {
-      console.log('Chat socket connected');
-    };
-  }
-
-  sendMessage(message: Omit<ChatMessage, 'status'>) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ type: 'message', payload: message }));
-    } else {
-      console.warn('Socket not connected');
+      this.setupListeners();
+    } catch (error) {
+      console.error('[SocketService] Initialization failed:', error);
     }
   }
 
-  sendReadReceipt(messageId: string, senderId: string) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ type: 'read_receipt', messageId, senderId }));
+  private setupListeners(): void {
+    if (!this.socket) return;
+
+    this.socket.on('connect', () => {
+      console.log('[SocketService] Connected:', this.socket?.id);
+    });
+
+    this.socket.on('disconnect', () => {
+      console.log('[SocketService] Disconnected');
+    });
+
+    this.socket.on('connect_error', (err) => {
+      console.error('[SocketService] Connection error:', err);
+    });
+  }
+
+  public connect(userId: string): void {
+    if (this.socket && !this.socket.connected) {
+      this.socket.auth = { userId };
+      this.socket.connect();
     }
   }
 
-  onMessage(callback: (msg: ChatMessage) => void) {
-    this.messageHandlers.push(callback);
-    return () => {
-      this.messageHandlers = this.messageHandlers.filter(h => h !== callback);
-    };
+  public disconnect(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+  }
+
+  public sendMessage(message: ChatMessage): void {
+    this.socket?.emit('chat:message', message);
+  }
+
+  public onMessage(callback: (message: ChatMessage) => void): () => void {
+    this.socket?.on('chat:message', callback);
+    return () => this.socket?.off('chat:message', callback);
+  }
+
+  public sendReadReceipt(messageId: string, recipientId: string): void {
+    this.socket?.emit('chat:read', { messageId, recipientId });
+  }
+
+  public getSocket(): Socket | null {
+    return this.socket;
   }
 }
 
