@@ -1,4 +1,6 @@
+
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type AuthStackParamList = {
@@ -8,12 +10,17 @@ export type AuthStackParamList = {
   Signup: undefined;
 };
 
+export type SocialStackParamList = {
+  Chat: { userId: string; username: string };
+  // Add other social screens here like UserProfile, etc.
+};
+
 export type MainTabParamList = {
   Map: undefined;
+  Social: { screen: keyof SocialStackParamList, params?: any };
+  Trading: undefined;
   Notifications: undefined;
   Profile: undefined;
-  Tasks: undefined;
-  TaskForm: undefined;
 };
 
 export type RootStackParamList = {
@@ -21,9 +28,11 @@ export type RootStackParamList = {
   Main: undefined;
 };
 
+// Navigation prop types
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
 
 export type MainTabNavigationProp<T extends keyof MainTabParamList> =
-  BottomTabNavigationProp<MainTabParamList, T>;
-
-export type MapScreenNavigationProp = MainTabNavigationProp<'Map'>;
+  CompositeNavigationProp<
+    BottomTabNavigationProp<MainTabParamList, T>,
+    NativeStackNavigationProp<RootStackParamList>
+  >;

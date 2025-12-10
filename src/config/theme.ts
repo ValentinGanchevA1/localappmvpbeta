@@ -6,6 +6,10 @@ export const COLORS = {
   SUCCESS: '#28A745',
   WHITE: '#FFFFFF',
   BLACK: '#000000',
+  BACKGROUND: '#F2F2F7',
+  TEXT_MUTED: '#6C7B7F',
+  TEXT_PRIMARY: '#000000',
+  TEXT_SECONDARY: '#6C7B7F',
 };
 
 export const SPACING = {
@@ -25,4 +29,24 @@ export const TYPOGRAPHY = {
     SEMIBOLD: '600' as '600',
     BOLD: '700' as '700',
   },
+  H2: {
+    fontSize: 24,
+    fontWeight: '700' as '700',
+  },
+  H3: {
+    fontSize: 20,
+    fontWeight: '700' as '700',
+  },
+  BODY: {
+    fontSize: 16,
+    fontWeight: '400' as '400',
+  },
+  CAPTION: {
+    fontSize: 12,
+    fontWeight: '400' as '400',
+  },
+  BUTTON: {
+    fontSize: 16,
+    fontWeight: '700' as '700',
+  }
 };

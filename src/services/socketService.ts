@@ -1,92 +1,48 @@
-import { io, Socket } from 'socket.io-client';
-import { store } from '@/store';
+import { AppEnvironment } from '@/config/environment';
+import { ChatMessage } from '@/types/social';
 
-export class SocketService {
-  private static instance: SocketService;
-  private socket: Socket | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+// Singleton service for WebSocket connections
+class SocketService {
+  private socket: WebSocket | null = null;
+  private messageHandlers: ((msg: ChatMessage) => void)[] = [];
 
-  private constructor() {}
+  connect(userId: string) {
+    if (this.socket) return;
 
-  public static getInstance(): SocketService {
-    if (!SocketService.instance) {
-      SocketService.instance = new SocketService();
-    }
-    return SocketService.instance;
+    // In production, use a robust library like socket.io-client
+    // This is a native WebSocket implementation example
+    this.socket = new WebSocket(`${AppEnvironment.API_BASE_URL.replace('http', 'ws')}/chat?userId=${userId}`);
+
+    this.socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      this.messageHandlers.forEach(handler => handler(data));
+    };
+
+    this.socket.onopen = () => {
+      console.log('Chat socket connected');
+    };
   }
 
-  public initialize(url: string): void {
-    if (this.socket?.connected) {
-      console.warn('[SocketService] Already connected');
-      return;
-    }
-
-    this.socket = io(url, {
-      autoConnect: true,
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: this.maxReconnectAttempts,
-    });
-
-    this.setupListeners();
-  }
-
-  private setupListeners(): void {
-    if (!this.socket) return;
-
-    this.socket.on('connect', () => {
-      console.log('[SocketService] Connected:', this.socket?.id);
-      this.reconnectAttempts = 0;
-    });
-
-    this.socket.on('disconnect', (reason) => {
-      console.log('[SocketService] Disconnected:', reason);
-    });
-
-    this.socket.on('error', (error) => {
-      console.error('[SocketService] Error:', error);
-    });
-
-    this.socket.on('reconnect_attempt', () => {
-      this.reconnectAttempts++;
-      console.log(
-        `[SocketService] Reconnect attempt ${this.reconnectAttempts}`
-      );
-    });
-  }
-
-  public emit(event: string, data?: any): void {
-    if (!this.socket?.connected) {
-      console.warn('[SocketService] Socket not connected');
-      return;
-    }
-    this.socket.emit(event, data);
-  }
-
-  public on(event: string, callback: (...args: any[]) => void): void {
-    if (!this.socket) {
-      console.warn('[SocketService] Socket not initialized');
-      return;
-    }
-    this.socket.on(event, callback);
-  }
-
-  public off(event: string): void {
-    if (!this.socket) return;
-    this.socket.off(event);
-  }
-
-  public disconnect(): void {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
+  sendMessage(message: Omit<ChatMessage, 'status'>) {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'message', payload: message }));
+    } else {
+      console.warn('Socket not connected');
     }
   }
 
-  public isConnected(): boolean {
-    return this.socket?.connected || false;
+  sendReadReceipt(messageId: string, senderId: string) {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'read_receipt', messageId, senderId }));
+    }
+  }
+
+  onMessage(callback: (msg: ChatMessage) => void) {
+    this.messageHandlers.push(callback);
+    return () => {
+      this.messageHandlers = this.messageHandlers.filter(h => h !== callback);
+    };
   }
 }
+
+export const socketService = new SocketService();

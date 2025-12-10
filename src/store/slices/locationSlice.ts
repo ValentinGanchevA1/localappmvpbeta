@@ -76,14 +76,20 @@ const locationSlice = createSlice({
       // Success state
       .addCase(fetchNearbyData.fulfilled, (state, action) => {
         state.nearbyUsers = action.payload || [];
-        state.loading = false;
+        state.loading = false; // ✅ CRITICAL: Always reset loading
         state.error = null;
+        if (__DEV__) {
+          console.log('[locationSlice] Nearby users fetched:', action.payload?.length || 0);
+        }
       })
       // Error state
       .addCase(fetchNearbyData.rejected, (state, action) => {
-        state.loading = false;
+        state.loading = false; // ✅ CRITICAL: Always reset loading on error
         state.error = action.payload || 'Unknown error occurred';
-        state.nearbyUsers = [];
+        state.nearbyUsers = []; // Clear stale data
+        if (__DEV__) {
+          console.error('[locationSlice] Nearby users fetch failed:', state.error);
+        }
       });
   },
 });

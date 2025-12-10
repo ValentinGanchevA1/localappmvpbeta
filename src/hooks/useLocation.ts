@@ -30,40 +30,63 @@ export const useLocation = () => {
 
   const startTracking = useCallback(async () => {
     try {
+      console.log('[useLocation] 🚀 Starting location tracking...');
+      
       const hasPermission = await handlePermission();
       if (!hasPermission) {
-        throw new Error('Location permission denied');
+        console.warn('[useLocation] ❌ Location permission denied');
+        dispatch(setLocationError('Location permission denied'));
+        return { success: false, error: 'Location permission denied' };
       }
 
+      console.log('[useLocation] ✅ Permission granted, getting current location...');
       const initialLocation = await locationService.getCurrentLocation();
+      console.log('[useLocation] 📍 Current location:', initialLocation);
+
       const initialRegion: Region = {
         latitude: initialLocation.latitude,
         longitude: initialLocation.longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       };
+      
       dispatch(updateRegion(initialRegion));
       dispatch(setCurrentLocation(initialLocation));
 
+      // Fetch nearby users immediately
+      console.log('[useLocation] 🔍 Fetching nearby users...');
+      await dispatch(
+        fetchNearbyData({
+          latitude: initialLocation.latitude,
+          longitude: initialLocation.longitude,
+          radius: 5000,
+        })
+      );
+
+      // Set up continuous tracking
       stopWatchingRef.current = locationService.watchPosition(
         (location) => {
           dispatch(setCurrentLocation(location));
+          // Only fetch nearby users if location changed significantly
           dispatch(
             fetchNearbyData({
               latitude: location.latitude,
               longitude: location.longitude,
-              radius: 5000, // 5km radius
+              radius: 5000,
             })
           );
         },
         (error) => {
+          console.error('[useLocation] ⚠️ Location watch error:', error);
           dispatch(setLocationError(error.message));
         }
       );
 
       dispatch(setLocationTracking(true));
+      console.log('[useLocation] ✅ Location tracking started');
       return { success: true };
     } catch (error: any) {
+      console.error('[useLocation] ❌ Error during startup:', error.message);
       dispatch(setLocationError(error.message));
       return { success: false, error: error.message };
     }

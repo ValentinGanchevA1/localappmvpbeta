@@ -1,3 +1,4 @@
+
 import React, { useEffect, useCallback, useState, useRef } from 'react';
 import {
   View,
@@ -14,6 +15,15 @@ import { updateRegion } from '@/store/slices/locationSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 
+// 1. Define a fallback location (e.g., San Francisco or your target city)
+// This prevents the app from breaking if GPS is slow/unavailable.
+const DEFAULT_LOCATION = {
+  latitude: 37.78825,
+  longitude: -122.4324,
+  latitudeDelta: 0.0922,
+  longitudeDelta: 0.0421,
+};
+
 const MapScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const { latitude, longitude, nearbyUsers, loading, region } = useLocation();
@@ -29,6 +39,7 @@ const MapScreen: React.FC = () => {
   );
 
   const centerOnUser = useCallback(() => {
+    // 2. Only animate if we actually have user coordinates
     if (latitude && longitude && mapRef.current) {
       mapRef.current.animateToRegion(
         {
@@ -44,6 +55,7 @@ const MapScreen: React.FC = () => {
   }, [latitude, longitude]);
 
   useEffect(() => {
+    // 3. Only auto-center if coordinates exist
     if (isMapCentered && latitude && longitude && mapRef.current) {
       mapRef.current.animateToRegion(
         {
@@ -57,7 +69,10 @@ const MapScreen: React.FC = () => {
     }
   }, [latitude, longitude, isMapCentered]);
 
-  if (loading || !latitude || !longitude) {
+  // 4. MODIFIED: Only block rendering if we are genuinely loading
+  // AND we have absolutely no location data yet.
+  // If loading is false but lat/long are null, we fall through to the map with default coords.
+  if (loading && (!latitude || !longitude)) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
@@ -66,9 +81,13 @@ const MapScreen: React.FC = () => {
     );
   }
 
+  // 5. Use real location if available, otherwise use Default
+  const currentLatitude = latitude ?? DEFAULT_LOCATION.latitude;
+  const currentLongitude = longitude ?? DEFAULT_LOCATION.longitude;
+
   const initialRegion = region ?? {
-    latitude,
-    longitude,
+    latitude: currentLatitude,
+    longitude: currentLongitude,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   };
@@ -81,7 +100,7 @@ const MapScreen: React.FC = () => {
         style={styles.map}
         initialRegion={initialRegion}
         onRegionChangeComplete={handleRegionChange}
-        showsUserLocation
+        showsUserLocation={!!(latitude && longitude)} // Only show blue dot if we have coords
         showsMyLocationButton={false}
         zoomEnabled
         scrollEnabled
@@ -105,8 +124,11 @@ const MapScreen: React.FC = () => {
         style={[
           styles.centerButton,
           !isMapCentered && styles.recenterButtonActive,
+          // Optional: Dim button if no location data
+          (!latitude || !longitude) && { opacity: 0.5 }
         ]}
         onPress={centerOnUser}
+        disabled={!latitude || !longitude}
       >
         <Icon
           name={isMapCentered ? 'locate' : 'locate-outline'}
@@ -126,10 +148,10 @@ const MapScreen: React.FC = () => {
       {__DEV__ && (
         <View style={styles.debugInfo}>
           <Text style={styles.debugText}>
-            Lat: {latitude?.toFixed(4)}
+            Lat: {latitude?.toFixed(4) ?? 'null'}
           </Text>
           <Text style={styles.debugText}>
-            Lon: {longitude?.toFixed(4)}
+            Lon: {longitude?.toFixed(4) ?? 'null'}
           </Text>
         </View>
       )}

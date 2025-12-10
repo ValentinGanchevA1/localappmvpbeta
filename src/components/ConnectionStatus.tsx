@@ -1,55 +1,61 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { Text, StyleSheet, Animated } from 'react-native';
 import { AppEnvironment } from '@/config/environment';
 
 export const ConnectionStatus: React.FC = () => {
   const [isConnected, setIsConnected] = useState(true);
-  const [isChecking, setIsChecking] = useState(true);
-  const slideAnim = new Animated.Value(-60);
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+  const isChecking = useRef(false);
 
-  useEffect(() => {
-    checkConnection();
-    const interval = setInterval(checkConnection, 10000); // Check every 10s
+  const checkConnection = useCallback(async (signal: AbortSignal) => {
+    if (isChecking.current) return;
+    isChecking.current = true;
 
-    return () => clearInterval(interval);
+    try {
+      const response = await fetch(`${AppEnvironment.API_BASE_URL}/health`, {
+        signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      setIsConnected(response.ok);
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Connection check failed:', error);
+        setIsConnected(false);
+      }
+    } finally {
+      isChecking.current = false;
+    }
   }, []);
 
-  const checkConnection = async () => {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+  useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
 
-      const response = await fetch(`${AppEnvironment.API_BASE_URL}/health`, {
-        signal: controller.signal,
-      });
+    const runCheck = async () => {
+      await checkConnection(signal);
+    };
 
-      clearTimeout(timeout);
+    (async () => {
+      await runCheck();
+    })();
 
-      const connected = response.ok;
-      setIsConnected(connected);
-      setIsChecking(false);
+    const interval = setInterval(runCheck, 10000); // Check every 10s
 
-      // Show banner on disconnect
-      Animated.timing(slideAnim, {
-        toValue: connected ? -60 : 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    } catch (error) {
-      setIsConnected(false);
-      setIsChecking(false);
+    return () => {
+      controller.abort();
+      clearInterval(interval);
+    };
+  }, [checkConnection]);
 
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
-
-  if (isChecking || isConnected) {
-    return null;
-  }
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: isConnected ? -100 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isConnected, slideAnim]);
 
   return (
     <Animated.View style={[styles.banner, { transform: [{ translateY: slideAnim }] }]}>

@@ -1,3 +1,4 @@
+
 // src/navigation/MainTabNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -8,7 +9,10 @@ import {
   NotificationsScreen,
   TaskListScreen,
   TaskFormScreen,
+  TradingScreen,
+  CreateTradeScreen,
 } from '@/screens/main';
+import SocialNavigator from './SocialNavigator';
 import { MainTabParamList } from '@/types/navigation';
 import { COLORS, TYPOGRAPHY } from '@/config/theme';
 
@@ -27,15 +31,18 @@ const getTabBarIcon = (
 		case 'Map':
 			iconName = focused ? 'map' : 'map-outline';
 			break;
-		case 'Tasks':
-			iconName = focused ? 'checkbox' : 'checkbox-outline';
-			break;
+    case 'Social':
+      iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+      break;
 		case 'Notifications':
 			iconName = focused ? 'notifications' : 'notifications-outline';
 			break;
 		case 'Profile':
 			iconName = focused ? 'person-circle' : 'person-circle-outline';
 			break;
+    case 'Trading':
+      iconName = focused ? 'swap-horizontal' : 'swap-horizontal-outline';
+      break;
 		default:
 			iconName = 'alert-circle';
 	}
@@ -90,14 +97,23 @@ const MainTabNavigator: React.FC = () => {
 				}}
 			/>
 
-			<Tab.Screen
-				name="Tasks"
-				component={TaskListScreen}
-				options={{
-					title: 'Tasks',
-					headerShown: true,
-				}}
-			/>
+      <Tab.Screen
+        name="Social"
+        component={SocialNavigator}
+        options={{
+          title: 'Social',
+          headerShown: false,
+        }}
+      />
+
+      <Tab.Screen
+        name="Trading"
+        component={TradingScreen}
+        options={{
+          title: 'Trading',
+          headerShown: false,
+        }}
+      />
 
 			<Tab.Screen
 				name="Notifications"
@@ -114,18 +130,6 @@ const MainTabNavigator: React.FC = () => {
 				options={{
 					title: 'Profile',
 					headerShown: true,
-				}}
-			/>
-
-			{/* Hidden from tab bar - accessed via navigation */}
-			<Tab.Screen
-				name="TaskForm"
-				component={TaskFormScreen}
-				options={{
-					title: 'Task Details',
-					headerShown: true,
-					tabBarButton: () => null, // Hide from tab bar
-					tabBarStyle: { display: 'none' }, // Hide tab bar when on this screen
 				}}
 			/>
 		</Tab.Navigator>

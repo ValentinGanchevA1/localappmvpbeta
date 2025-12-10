@@ -1,3 +1,4 @@
+
 // src/store/store.ts
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
@@ -8,6 +9,7 @@ import userReducer from './slices/userSlice';
 import themeReducer from './slices/themeSlice';
 import mapReducer from './slices/mapSlice';
 import taskReducer from './slices/taskSlice';
+import tradingReducer from './slices/tradingSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -16,6 +18,7 @@ const rootReducer = combineReducers({
   theme: themeReducer,
   map: mapReducer,
   task: taskReducer,
+  trading: tradingReducer,
 });
 
 const persistConfig = {
