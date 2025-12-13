@@ -26,24 +26,43 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 		const initializeApp = async () => {
 			if (!isAuthenticated || !user) return; // Wait for auth
 
-			// A) Start location tracking
-			await startTracking();
-			console.log('[AppInitializer] Location tracking started');
+			console.log('[AppInitializer] Starting app initialization...');
+
+			// A) Start location tracking (don't crash app if it fails)
+			try {
+				const result = await startTracking();
+				if (result.success) {
+					console.log('[AppInitializer] ✅ Location tracking started');
+				} else {
+					console.warn('[AppInitializer] ⚠️ Location tracking failed:', result.error);
+				}
+			} catch (error) {
+				console.error('[AppInitializer] ❌ Location tracking error:', error);
+				// Continue with app initialization even if location fails
+			}
 
 			// B) Initialize socket for real-time updates
-			if (socketService && typeof socketService.initialize === 'function') {
-				socketService.initialize(AppEnvironment.SOCKET_URL);
-				console.log('[AppInitializer] Socket initialized');
-			} else {
-				console.warn('[AppInitializer] SocketService not ready or invalid');
+			try {
+				if (socketService && typeof socketService.initialize === 'function') {
+					socketService.initialize(AppEnvironment.SOCKET_URL);
+					console.log('[AppInitializer] ✅ Socket initialized');
+				} else {
+					console.warn('[AppInitializer] ⚠️ SocketService not ready or invalid');
+				}
+			} catch (error) {
+				console.error('[AppInitializer] ❌ Socket initialization error:', error);
 			}
 
 			// C) Fetch user profile (background task)
-			dispatch(fetchUserProfile());
-			console.log('[AppInitializer] Profile fetch initiated');
+			try {
+				dispatch(fetchUserProfile());
+				console.log('[AppInitializer] ✅ Profile fetch initiated');
+			} catch (error) {
+				console.error('[AppInitializer] ❌ Profile fetch error:', error);
+			}
 
 			if (__DEV__) {
-				console.log('[AppInitializer] App fully initialized');
+				console.log('[AppInitializer] ✅ App initialization complete');
 			}
 		};
 
@@ -51,7 +70,8 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 			try {
 				await initializeApp();
 			} catch (error) {
-				console.error('[AppInitializer] Initialization error:', error);
+				console.error('[AppInitializer] ❌ Critical initialization error:', error);
+				// App continues to run even if initialization partially fails
 			}
 		})();
 

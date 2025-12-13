@@ -40,8 +40,17 @@ export const useLocation = () => {
       }
 
       console.log('[useLocation] ✅ Permission granted, getting current location...');
-      const initialLocation = await locationService.getCurrentLocation();
-      console.log('[useLocation] 📍 Current location:', initialLocation);
+
+      let initialLocation;
+      try {
+        initialLocation = await locationService.getCurrentLocation();
+        console.log('[useLocation] 📍 Current location:', initialLocation);
+      } catch (locationError) {
+        const locErrorMessage = locationError instanceof Error ? locationError.message : 'Failed to get current location';
+        console.error('[useLocation] ❌ Failed to get initial location:', locErrorMessage);
+        dispatch(setLocationError(locErrorMessage));
+        return { success: false, error: locErrorMessage };
+      }
 
       const initialRegion: Region = {
         latitude: initialLocation.latitude,
@@ -53,37 +62,44 @@ export const useLocation = () => {
       dispatch(updateRegion(initialRegion));
       dispatch(setCurrentLocation(initialLocation));
 
-      // Fetch nearby users immediately
+      // Fetch nearby users immediately (don't crash if this fails)
       console.log('[useLocation] 🔍 Fetching nearby users...');
-      await dispatch(
-        fetchNearbyData({
-          latitude: initialLocation.latitude,
-          longitude: initialLocation.longitude,
-          radius: 5000,
-        })
-      );
+      try {
+        await dispatch(
+          fetchNearbyData({
+            latitude: initialLocation.latitude,
+            longitude: initialLocation.longitude,
+            radius: 5000,
+          })
+        ).unwrap();
+      } catch (fetchError) {
+        // Log but don't fail - nearby users is not critical for location tracking
+        console.warn('[useLocation] ⚠️ Failed to fetch nearby users:', fetchError);
+      }
 
       // Set up continuous tracking
       stopWatchingRef.current = locationService.watchPosition(
         (location) => {
           dispatch(setCurrentLocation(location));
-          // Only fetch nearby users if location changed significantly
+          // Only fetch nearby users if location changed significantly (don't await)
           dispatch(
             fetchNearbyData({
               latitude: location.latitude,
               longitude: location.longitude,
               radius: 5000,
             })
-          );
+          ).catch((err) => {
+            console.warn('[useLocation] ⚠️ Background fetch failed:', err);
+          });
         },
         (error) => {
           console.error('[useLocation] ⚠️ Location watch error:', error);
-          dispatch(setLocationError(error.message));
+          dispatch(setLocationError(error.message || 'Location tracking error'));
         }
       );
 
       dispatch(setLocationTracking(true));
-      console.log('[useLocation] ✅ Location tracking started');
+      console.log('[useLocation] ✅ Location tracking started successfully');
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during location tracking startup.';
