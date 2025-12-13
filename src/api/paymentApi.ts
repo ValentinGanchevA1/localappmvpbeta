@@ -18,24 +18,51 @@ export const paymentApi = {
     amount: number,
     currency: string = 'usd'
   ): Promise<PaymentIntent> => {
-    const response = await axiosInstance.post<PaymentIntent>(
-      '/api/payments/intent',
-      { amount, currency }
-    );
-    return response.data;
+    try {
+      const response = await axiosInstance.post<PaymentIntent>(
+        '/api/payments/intent',
+        { amount, currency }
+      );
+      return response.data;
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to create payment intent. Please try again.';
+      throw new Error(message);
+    }
   },
 
   confirmPayment: async (paymentIntentId: string): Promise<Transaction> => {
-    const response = await axiosInstance.post<Transaction>(
-      `/api/payments/${paymentIntentId}/confirm`
-    );
-    return response.data;
+    try {
+      if (!paymentIntentId) {
+        throw new Error('Payment intent ID is required');
+      }
+      const response = await axiosInstance.post<Transaction>(
+        `/api/payments/${paymentIntentId}/confirm`
+      );
+      return response.data;
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to confirm payment. Please try again.';
+      throw new Error(message);
+    }
   },
 
   getTransactions: async (): Promise<Transaction[]> => {
-    const response = await axiosInstance.get<Transaction[]>(
-      '/api/payments/transactions'
-    );
-    return response.data || [];
+    try {
+      const response = await axiosInstance.get<Transaction[]>(
+        '/api/payments/transactions'
+      );
+      return response.data || [];
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to fetch transactions. Please try again.';
+      throw new Error(message);
+    }
   },
 };
