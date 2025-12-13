@@ -17,10 +17,10 @@ interface RecordSwipeParams {
 export const datingApi = {
   async getNearbyProfiles(params: GetNearbyProfilesParams): Promise<DatingProfile[]> {
     try {
-      if (!params.latitude || !params.longitude) {
+      if (typeof params.latitude !== 'number' || typeof params.longitude !== 'number') {
         throw new Error('Location coordinates are required');
       }
-      if (!params.radius || params.radius <= 0) {
+      if (typeof params.radius !== 'number' || params.radius <= 0) {
         throw new Error('Valid search radius is required');
       }
       const response = await axiosInstance.get('/dating/nearby', { params });

@@ -19,13 +19,13 @@ interface GetNearbyUsersParams {
 export const locationApi = {
   async getNearbyUsers(params: GetNearbyUsersParams): Promise<NearbyUser[]> {
     try {
-      if (!params.latitude || !params.longitude) {
+      if (typeof params.latitude !== 'number' || typeof params.longitude !== 'number') {
         throw new Error('Location coordinates are required');
       }
-      if (!params.radius || params.radius <= 0) {
+      if (typeof params.radius !== 'number' || params.radius <= 0) {
         throw new Error('Valid search radius is required');
       }
-      if (!params.limit || params.limit <= 0) {
+      if (typeof params.limit !== 'number' || params.limit <= 0) {
         throw new Error('Valid limit is required');
       }
       const response = await axiosInstance.get('/api/location/nearby', { params });
