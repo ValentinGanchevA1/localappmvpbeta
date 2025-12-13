@@ -72,9 +72,20 @@ const chatSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(sendMessage.fulfilled, (_state, _action) => {
-      // Message handled by socket listener
-    });
+    builder
+      .addCase(sendMessage.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(sendMessage.fulfilled, (state, _action) => {
+        // Message handled by socket listener
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(sendMessage.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to send message';
+      });
   },
 });
 

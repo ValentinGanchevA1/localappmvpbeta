@@ -6,12 +6,14 @@ interface TaskState {
   tasks: Task[];
   selectedTask: Task | null;
   loading: boolean;
+  error: string | null;
 }
 
 const initialState: TaskState = {
   tasks: [],
   selectedTask: null,
   loading: false,
+  error: null,
 };
 
 export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async () => {
@@ -57,24 +59,64 @@ const taskSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch tasks
       .addCase(fetchTasks.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
         state.tasks = action.payload;
         state.loading = false;
+        state.error = null;
+      })
+      .addCase(fetchTasks.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch tasks';
+      })
+      // Create task
+      .addCase(createTask.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(createTask.fulfilled, (state, action: PayloadAction<Task>) => {
         state.tasks.push(action.payload);
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(createTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to create task';
+      })
+      // Update task
+      .addCase(updateTask.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(updateTask.fulfilled, (state, action: PayloadAction<{ id: string, data: UpdateTaskDto }>) => {
         const index = state.tasks.findIndex(task => task.id === action.payload.id);
         if (index !== -1) {
           state.tasks[index] = { ...state.tasks[index], ...action.payload.data };
         }
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(updateTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to update task';
+      })
+      // Delete task
+      .addCase(deleteTask.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(deleteTask.fulfilled, (state, action: PayloadAction<string>) => {
         state.tasks = state.tasks.filter(task => task.id !== action.payload);
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(deleteTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to delete task';
       });
   },
 });

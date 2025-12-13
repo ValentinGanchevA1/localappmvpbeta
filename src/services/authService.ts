@@ -77,12 +77,34 @@ export const authService = {
   },
 
   async verifyCode(code: string): Promise<{ verified: boolean }> {
-    const response = await axiosInstance.post('/auth/verify', { code });
-    return response.data || response;
+    try {
+      if (!code || code.trim() === '') {
+        throw new Error('Verification code is required');
+      }
+      const response = await axiosInstance.post('/auth/verify', { code });
+      return response.data || response;
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Code verification failed. Please try again.';
+      throw new Error(message);
+    }
   },
 
   async refreshToken(token: string): Promise<{ token: string }> {
-    const response = await axiosInstance.post('/auth/refresh', { token });
-    return response.data || response;
+    try {
+      if (!token || token.trim() === '') {
+        throw new Error('Token is required for refresh');
+      }
+      const response = await axiosInstance.post('/auth/refresh', { token });
+      return response.data || response;
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Token refresh failed. Please log in again.';
+      throw new Error(message);
+    }
   },
 };

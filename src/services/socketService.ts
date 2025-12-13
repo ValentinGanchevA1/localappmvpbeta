@@ -41,9 +41,20 @@ class SocketService {
   }
 
   public connect(userId: string): void {
-    if (this.socket && !this.socket.connected) {
-      this.socket.auth = { userId };
-      this.socket.connect();
+    try {
+      if (!userId) {
+        throw new Error('User ID is required to connect to socket');
+      }
+      if (!this.socket) {
+        throw new Error('Socket not initialized. Call initialize() first.');
+      }
+      if (!this.socket.connected) {
+        this.socket.auth = { userId };
+        this.socket.connect();
+      }
+    } catch (error) {
+      console.error('[SocketService] Connect failed:', error);
+      throw error;
     }
   }
 
@@ -54,16 +65,50 @@ class SocketService {
   }
 
   public sendMessage(message: ChatMessage): void {
-    this.socket?.emit('chat:message', message);
+    try {
+      if (!this.socket) {
+        throw new Error('Socket not initialized. Cannot send message.');
+      }
+      if (!this.socket.connected) {
+        throw new Error('Socket not connected. Cannot send message.');
+      }
+      if (!message || !message.content) {
+        throw new Error('Invalid message: content is required');
+      }
+      this.socket.emit('chat:message', message);
+    } catch (error) {
+      console.error('[SocketService] Send message failed:', error);
+      throw error;
+    }
   }
 
   public onMessage(callback: (message: ChatMessage) => void): () => void {
-    this.socket?.on('chat:message', callback);
+    if (!this.socket) {
+      throw new Error('Socket not initialized. Cannot listen for messages.');
+    }
+    if (typeof callback !== 'function') {
+      throw new Error('Callback must be a function');
+    }
+    this.socket.on('chat:message', callback);
     return () => this.socket?.off('chat:message', callback);
   }
 
   public sendReadReceipt(messageId: string, recipientId: string): void {
-    this.socket?.emit('chat:read', { messageId, recipientId });
+    try {
+      if (!this.socket) {
+        throw new Error('Socket not initialized. Cannot send read receipt.');
+      }
+      if (!this.socket.connected) {
+        throw new Error('Socket not connected. Cannot send read receipt.');
+      }
+      if (!messageId || !recipientId) {
+        throw new Error('Message ID and recipient ID are required');
+      }
+      this.socket.emit('chat:read', { messageId, recipientId });
+    } catch (error) {
+      console.error('[SocketService] Send read receipt failed:', error);
+      throw error;
+    }
   }
 
   public getSocket(): Socket | null {
