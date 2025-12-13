@@ -19,7 +19,6 @@ import { SwipeCard } from '@/components/dating/SwipeCard';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 import { DatingProfile } from '@/types/dating';
-import { AppEnvironment } from '@/config/environment';
 
 export const SwipeScreen: React.FC = () => {
   const dispatch = useAppDispatch();
