@@ -14,7 +14,6 @@ app.use(express.json());
 // ============================================================================
 const users = new Map(); // phone -> user
 const conversations = new Map(); // conversationId -> messages[]
-const notifications = new Map(); // userId -> notifications[]
 
 
 // ============================================================================
@@ -22,7 +21,7 @@ const notifications = new Map(); // userId -> notifications[]
 // ============================================================================
 
 app.get('/api/dating/nearby', (req, res) => {
-  const { lat, lng, radius = 50 } = req.query;
+  const { lat, lng } = req.query;
 
   // Mock nearby dating profiles
   const mockProfiles = [
@@ -262,7 +261,7 @@ app.post('/api/location/update', (req, res) => {
 });
 
 app.get('/api/location/nearby', (req, res) => {
-	const { latitude, longitude, radius = 5000, limit = 50 } = req.query;
+	const { latitude, longitude, limit = 50 } = req.query;
 
 	// Mock nearby users
 	const mockUsers = [
@@ -295,7 +294,7 @@ app.get('/api/location/nearby', (req, res) => {
 		},
 	];
 
-	res.json(mockUsers.slice(0, parseInt(limit)));
+	res.json(mockUsers.slice(0, parseInt(limit, 10)));
 });
 
 app.get('/api/location/geofences', (req, res) => {
