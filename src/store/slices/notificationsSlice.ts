@@ -2,11 +2,15 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { notificationsApi, Notification } from '@/api/notificationsApi';
 import { getErrorMessage } from '@/types/error';
 
+// Maximum notifications to keep in state
+const MAX_NOTIFICATIONS = 100;
+
 interface NotificationsState {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
   error: string | null;
+  lastFetchedAt: number | null;
 }
 
 const initialState: NotificationsState = {
@@ -14,6 +18,7 @@ const initialState: NotificationsState = {
   unreadCount: 0,
   loading: false,
   error: null,
+  lastFetchedAt: null,
 };
 
 export const fetchNotifications = createAsyncThunk<Notification[], void>(
@@ -44,8 +49,38 @@ const notificationsSlice = createSlice({
   initialState,
   reducers: {
     addNotification: (state, action: PayloadAction<Notification>) => {
-      state.notifications.unshift(action.payload);
-      state.unreadCount += 1;
+      // Check for duplicates
+      const exists = state.notifications.some((n) => n.id === action.payload.id);
+      if (!exists) {
+        state.notifications.unshift(action.payload);
+        if (!action.payload.read) {
+          state.unreadCount += 1;
+        }
+        // Trim to max size
+        if (state.notifications.length > MAX_NOTIFICATIONS) {
+          state.notifications = state.notifications.slice(0, MAX_NOTIFICATIONS);
+        }
+      }
+    },
+    removeNotification: (state, action: PayloadAction<string>) => {
+      const index = state.notifications.findIndex((n) => n.id === action.payload);
+      if (index > -1) {
+        const notification = state.notifications[index];
+        if (!notification.read) {
+          state.unreadCount = Math.max(0, state.unreadCount - 1);
+        }
+        state.notifications.splice(index, 1);
+      }
+    },
+    markAllAsRead: (state) => {
+      state.notifications.forEach((n) => {
+        n.read = true;
+      });
+      state.unreadCount = 0;
+    },
+    clearAllNotifications: (state) => {
+      state.notifications = [];
+      state.unreadCount = 0;
     },
     clearError: (state) => {
       state.error = null;
@@ -62,6 +97,7 @@ const notificationsSlice = createSlice({
         state.notifications = action.payload;
         state.unreadCount = action.payload.filter((n) => !n.read).length;
         state.loading = false;
+        state.lastFetchedAt = Date.now();
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;
@@ -88,5 +124,22 @@ const notificationsSlice = createSlice({
   },
 });
 
-export const { addNotification, clearError } = notificationsSlice.actions;
+export const {
+  addNotification,
+  removeNotification,
+  markAllAsRead,
+  clearAllNotifications,
+  clearError,
+} = notificationsSlice.actions;
+
 export default notificationsSlice.reducer;
+
+// Selectors
+export const selectNotifications = (state: { notifications: NotificationsState }) =>
+  state.notifications.notifications;
+
+export const selectUnreadCount = (state: { notifications: NotificationsState }) =>
+  state.notifications.unreadCount;
+
+export const selectNotificationsLoading = (state: { notifications: NotificationsState }) =>
+  state.notifications.loading;

@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "org.jetbrains.kotlin.android"
     id "com.facebook.react"
+    id("com.google.gms.google-services")
 }
 
 /**
@@ -114,11 +115,13 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    // Fix for react-native-geolocation-service - use compatible play-services-location version
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-analytics")    // Fix for react-native-geolocation-service - use compatible play-services-location version
     implementation("com.google.android.gms:play-services-location:${rootProject.ext.playServicesLocationVersion}")
 
-    if (hermesEnabled.toBoolean()) {
-        implementation("com.facebook.react:hermes-android")
+        if (hermesEnabled.toBoolean()) {
+            implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }

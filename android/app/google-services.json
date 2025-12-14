@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "218591063506",
+    "project_id": "localappmvp",
+    "storage_bucket": "localappmvp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:218591063506:android:4c4ae90a21640705666c0b",
+        "android_client_info": {
+          "package_name": "com.vganchev6.localappmvpbeta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE648F6idFNqpszBY8rENjuFodMMCGjSE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

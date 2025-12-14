@@ -10,13 +10,16 @@ import themeReducer from './slices/themeSlice';
 import datingReducer from './slices/datingSlice';
 import tradingReducer from './slices/tradingSlice';
 import taskReducer from './slices/taskSlice';
+import notificationsReducer from './slices/notificationsSlice';
+import engagementReducer from './slices/engagementSlice';
+import notificationSettingsReducer from './slices/notificationSettingsSlice';
 
 // Whitelist specific slices to persist (don't persist everything)
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['auth', 'theme', 'user'], // ✅ Only persist essential data
-  blacklist: ['location', 'dating', 'trading', 'task'], // ❌ Don't persist real-time data
+  whitelist: ['auth', 'theme', 'user', 'engagement', 'notificationSettings'], // ✅ Persist essential data + notification settings
+  blacklist: ['location', 'dating', 'trading', 'task', 'notifications'], // ❌ Don't persist real-time data
   version: 1,
 };
 
@@ -28,6 +31,9 @@ const rootReducer = combineReducers({
   dating: datingReducer,
   trading: tradingReducer,
   task: taskReducer,
+  notifications: notificationsReducer,
+  engagement: engagementReducer,
+  notificationSettings: notificationSettingsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
