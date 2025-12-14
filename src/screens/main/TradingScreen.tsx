@@ -32,7 +32,7 @@ const TradingScreen: React.FC = () => {
         <Text style={styles.title}>Trading</Text>
         <Button
           title="Create Trade"
-          onPress={() => navigation.navigate('CreateTrade')}
+          onPress={() => navigation.navigate('Trading', { screen: 'CreateTrade' })}
         />
       </View>
       <View style={styles.section}>

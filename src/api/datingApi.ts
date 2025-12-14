@@ -23,9 +23,12 @@ export const datingApi = {
       if (!params.radius || params.radius <= 0) {
         throw new Error('Valid search radius is required');
       }
-      const response = await axiosInstance.get('/dating/nearby', { params });
+      console.log('Fetching nearby profiles with params:', params);
+      const response = await axiosInstance.get('/api/dating/nearby', { params });
+      console.log('Nearby profiles response:', response);
       return response.data;
     } catch (error: any) {
+      console.error('Error fetching nearby profiles:', error);
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -44,7 +47,7 @@ export const datingApi = {
       if (!params.action || !['like', 'pass', 'super_like'].includes(params.action)) {
         throw new Error('Valid swipe action is required (like, pass, or super_like)');
       }
-      const response = await axiosInstance.post('/dating/swipe', params);
+      const response = await axiosInstance.post('/api/dating/swipe', params);
       return response.data;
     } catch (error: any) {
       const message =

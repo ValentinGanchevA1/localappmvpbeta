@@ -7,10 +7,10 @@ import {
   MapScreen,
   ProfileScreen,
   NotificationsScreen,
-  TradingScreen,
 } from '@/screens/main';
 import { SwipeScreen } from '@/screens/dating/SwipeScreen';
 import SocialNavigator from './SocialNavigator';
+import TradingNavigator from './TradingNavigator';
 import { MainTabParamList } from '@/types/navigation';
 import { COLORS, TYPOGRAPHY } from '@/config/theme';
 
@@ -101,6 +101,7 @@ const MainTabNavigator: React.FC = () => {
       <Tab.Screen
         name="Social"
         component={SocialNavigator}
+        initialParams={{ screen: 'Chat', params: { userId: 'user2', username: 'Mike_Trader' } }}
         options={{
           title: 'Social',
           headerShown: false,
@@ -118,7 +119,7 @@ const MainTabNavigator: React.FC = () => {
 
       <Tab.Screen
         name="Trading"
-        component={TradingScreen}
+        component={TradingNavigator}
         options={{
           title: 'Trading',
           headerShown: false,

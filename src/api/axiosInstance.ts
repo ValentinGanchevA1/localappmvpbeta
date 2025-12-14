@@ -33,6 +33,7 @@ const createAxiosInstance = (): AxiosInstance => {
     headers: {
       'Content-Type': 'application/json',
     },
+    withCredentials: true,
   });
 
   // Request interceptor with dynamic import to avoid circular dependencies

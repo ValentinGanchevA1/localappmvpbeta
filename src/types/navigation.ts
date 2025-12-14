@@ -1,7 +1,8 @@
 
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { CompositeNavigationProp } from '@react-navigation/native';
+import { CompositeNavigationProp, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { TradingStackParamList } from '@/navigation/TradingNavigator';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -17,10 +18,9 @@ export type SocialStackParamList = {
 
 export type MainTabParamList = {
   Map: undefined;
-  Social: { screen: keyof SocialStackParamList; params?: SocialStackParamList[keyof SocialStackParamList] };
+  Social: NavigatorScreenParams<SocialStackParamList>;
   Dating: undefined;
-  Trading: undefined;
-  CreateTrade: undefined;
+  Trading: NavigatorScreenParams<TradingStackParamList>;
   Notifications: undefined;
   Profile: undefined;
 };
