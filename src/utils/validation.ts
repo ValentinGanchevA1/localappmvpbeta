@@ -5,6 +5,16 @@ interface ValidationResult {
   message?: string;
 }
 
+interface AuthPayload {
+  phone?: string;
+  password?: string;
+}
+
+interface RegisterPayload extends AuthPayload {
+  name?: string;
+  email?: string;
+}
+
 export const ValidationUtils = {
   validatePhoneNumber: (phone: string): ValidationResult => {
     // More flexible phone validation
@@ -56,7 +66,7 @@ export const ValidationUtils = {
     return { isValid: true };
   },
 
-  validateAuthPayload: (payload: any): boolean => {
+  validateAuthPayload: (payload: AuthPayload | null | undefined): boolean => {
     if (!payload) return false;
 
     const phoneValid =
@@ -70,7 +80,7 @@ export const ValidationUtils = {
     return phoneValid && passwordValid;
   },
 
-  validateRegisterPayload: (payload: any): boolean => {
+  validateRegisterPayload: (payload: RegisterPayload | null | undefined): boolean => {
     if (!payload) return false;
 
     const phoneValid =

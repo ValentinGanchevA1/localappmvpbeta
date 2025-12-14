@@ -1,42 +1,61 @@
 // src/services/errorHandler.ts
+import { isAxiosError, getErrorMessage, AppError } from '@/types/error';
 
 export enum ErrorCodes {
   NETWORK_ERROR = 'NETWORK_ERROR',
   AUTH_ERROR = 'AUTH_ERROR',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
+  SERVER_ERROR = 'SERVER_ERROR',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
-export interface AppError {
+export interface ServiceError {
   message: string;
   code: ErrorCodes;
-  details?: any;
+  statusCode?: number;
+  details?: Record<string, unknown>;
 }
 
 class ErrorHandler {
-  public handleError(error: any, context: string): AppError {
-    const appError: AppError = {
-      message: 'An unknown error occurred',
-      code: ErrorCodes.UNKNOWN_ERROR,
-    };
+  public handleError(error: unknown, context: string): ServiceError {
+    const message = getErrorMessage(error);
+    let code = ErrorCodes.UNKNOWN_ERROR;
+    let statusCode: number | undefined;
 
-    if (error.code === 'ECONNABORTED' || error.message.includes('Network')) {
-      appError.message = 'Network request failed';
-      appError.code = ErrorCodes.NETWORK_ERROR;
-    } else if (error.response) {
-      appError.message = error.response.data?.message || 'An error occurred';
-      if (error.response.status === 401) {
-        appError.code = ErrorCodes.AUTH_ERROR;
+    if (isAxiosError(error)) {
+      statusCode = error.response?.status;
+
+      if (error.code === 'ECONNABORTED' || error.message.includes('Network')) {
+        code = ErrorCodes.NETWORK_ERROR;
+      } else if (statusCode === 401) {
+        code = ErrorCodes.AUTH_ERROR;
+      } else if (statusCode === 404) {
+        code = ErrorCodes.NOT_FOUND;
+      } else if (statusCode === 422 || statusCode === 400) {
+        code = ErrorCodes.VALIDATION_ERROR;
+      } else if (statusCode && statusCode >= 500) {
+        code = ErrorCodes.SERVER_ERROR;
       }
-    } else if (error.message) {
-      appError.message = error.message;
     }
 
-    console.error(`[${context}] Error:`, appError.message, {
-      code: appError.code,
-      details: error,
+    const serviceError: ServiceError = {
+      message,
+      code,
+      statusCode,
+      details: { context },
+    };
+
+    console.error(`[${context}] Error:`, serviceError.message, {
+      code: serviceError.code,
+      statusCode: serviceError.statusCode,
     });
 
-    return appError;
+    return serviceError;
+  }
+
+  public createError(message: string, code: ErrorCodes): ServiceError {
+    return { message, code };
   }
 }
 

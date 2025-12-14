@@ -1,5 +1,5 @@
 import axiosInstance from '@/api/axiosInstance';
-import { LoginCredentials, RegisterCredentials } from '@/types';
+import { LoginCredentials, RegisterCredentials, getErrorMessage, isAxiosError } from '@/types';
 import { User } from '@/types/user';
 
 export interface AuthResponse {
@@ -13,10 +13,16 @@ export interface AuthResponse {
   };
 }
 
+interface RegisterPayload {
+  phone: string;
+  password: string;
+  name?: string;
+  email?: string;
+}
+
 export const authService = {
   async loginWithPhone(credentials: LoginCredentials): Promise<{ token: string; user: User }> {
     try {
-      // ✅ axiosInstance already has interceptor, get data directly
       const response = await axiosInstance.post<AuthResponse>('/auth/login', credentials);
       const data = response.data || response;
 
@@ -34,20 +40,22 @@ export const authService = {
           },
         },
       };
-    } catch (error: any) {
-      const message = error.response?.data?.message || error.message || 'Login failed';
-      throw new Error(message);
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
     }
   },
 
   async registerWithPhone(credentials: RegisterCredentials): Promise<{ token: string; user: User }> {
     try {
-      const payload: any = {
+      if (!credentials.password) {
+        throw new Error('Password is required for registration');
+      }
+      const payload: RegisterPayload = {
         phone: credentials.phone,
         password: credentials.password,
+        name: credentials.name,
+        email: credentials.email,
       };
-      if (credentials.name) payload.name = credentials.name;
-      if (credentials.email) payload.email = credentials.email;
 
       const response = await axiosInstance.post<AuthResponse>('/auth/register', payload);
       const data = response.data || response;
@@ -66,14 +74,13 @@ export const authService = {
           },
         },
       };
-    } catch (error: any) {
-      const message = error.response?.data?.message || error.message || 'Registration failed';
-      throw new Error(message);
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
     }
   },
 
   async loginWithPassword(credentials: LoginCredentials): Promise<{ token: string; user: User }> {
-    return this.loginWithPhone(credentials); // Reuse same endpoint
+    return this.loginWithPhone(credentials);
   },
 
   async verifyCode(code: string): Promise<{ verified: boolean }> {
@@ -83,12 +90,8 @@ export const authService = {
       }
       const response = await axiosInstance.post('/auth/verify', { code });
       return response.data || response;
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        'Code verification failed. Please try again.';
-      throw new Error(message);
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
     }
   },
 
@@ -99,12 +102,8 @@ export const authService = {
       }
       const response = await axiosInstance.post('/auth/refresh', { token });
       return response.data || response;
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        'Token refresh failed. Please log in again.';
-      throw new Error(message);
+    } catch (error) {
+      throw new Error(getErrorMessage(error));
     }
   },
 };

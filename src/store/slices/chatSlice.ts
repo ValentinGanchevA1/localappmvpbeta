@@ -1,6 +1,7 @@
-// src/store/slices/chatSlice.ts (ENHANCED)
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+// src/store/slices/chatSlice.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { socketService } from '@/services/socketService';
+import { Conversation, SocketMessageResponse } from '@/types/social';
 
 interface Message {
   id: string;
@@ -12,7 +13,7 @@ interface Message {
 }
 
 interface ChatState {
-  conversations: any[];
+  conversations: Conversation[];
   currentMessages: Message[];
   loading: boolean;
   error: string | null;
@@ -25,28 +26,26 @@ const initialState: ChatState = {
   error: null,
 };
 
-export const sendMessage = createAsyncThunk(
+export const sendMessage = createAsyncThunk<
+  SocketMessageResponse,
+  { conversationId: string; content: string; recipientId: string }
+>(
   'chat/sendMessage',
-  async (payload: {
-    conversationId: string;
-    content: string;
-    recipientId: string;
-  }) => {
+  async (payload, { rejectWithValue }) => {
     const sock = socketService.getSocket();
     if (!sock) {
-      throw new Error('Socket not connected');
+      return rejectWithValue('Socket not connected');
     }
-    return new Promise((resolve, reject) => {
+    return new Promise<SocketMessageResponse>((resolve, reject) => {
       sock.emit('message:send', payload);
 
-      // Listen for acknowledgment
-      const onSent = (response: any) => {
+      const onSent = (response: SocketMessageResponse) => {
         cleanup();
         resolve(response);
       };
-      const onError = (error: any) => {
+      const onError = (error: { message?: string }) => {
         cleanup();
-        reject(error);
+        reject(new Error(error.message || 'Failed to send message'));
       };
 
       const cleanup = () => {
@@ -64,11 +63,17 @@ const chatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    addMessageToConversation: (state, action) => {
+    addMessageToConversation: (state, action: PayloadAction<Message>) => {
       state.currentMessages.push(action.payload);
     },
     clearMessages: (state) => {
       state.currentMessages = [];
+    },
+    setConversations: (state, action: PayloadAction<Conversation[]>) => {
+      state.conversations = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -77,17 +82,18 @@ const chatSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(sendMessage.fulfilled, (state, _action) => {
-        // Message handled by socket listener
+      .addCase(sendMessage.fulfilled, (state) => {
         state.loading = false;
         state.error = null;
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to send message';
+        state.error = typeof action.payload === 'string'
+          ? action.payload
+          : action.error.message || 'Failed to send message';
       });
   },
 });
 
-export const { addMessageToConversation, clearMessages } = chatSlice.actions;
+export const { addMessageToConversation, clearMessages, setConversations, clearError } = chatSlice.actions;
 export default chatSlice.reducer;

@@ -11,8 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/common';
+import { Button, Input } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
@@ -54,7 +53,7 @@ export const PhoneLoginScreen: React.FC = () => {
 				]);
 				console.error('[PhoneLoginScreen] Login failed:', result.payload);
 			}
-		} catch (err: any) {
+		} catch (err) {
 			console.error('[PhoneLoginScreen] Login error:', err);
 			Alert.alert(
 				'Login Error',

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import { Button } from '@/components/ui/Button';
-import { CodeInput } from '@/components/common';
+import { Button, CodeInput } from '@/components/common';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigationProp } from '@/types/navigation';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';

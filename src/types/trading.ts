@@ -1,8 +1,18 @@
 // src/types/trading.ts
+export interface TradeItem {
+  id: string;
+  name: string;
+  description?: string;
+  quantity: number;
+  imageUrl?: string;
+}
+
 export interface Trade {
   id: string;
   fromUserId: string;
   toUserId: string;
-  items: any[]; // Replace 'any' with a proper item type
+  items: TradeItem[];
   status: 'pending' | 'accepted' | 'declined';
+  createdAt?: string;
+  updatedAt?: string;
 }

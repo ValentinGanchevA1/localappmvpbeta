@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 

@@ -11,14 +11,16 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchTasks, deleteTask, selectTask } from '@/store/slices/taskSlice';
 import { Task } from '@/types/task';
-import { Card } from '@/components/ui/Card';
-import { useNavigation } from '@react-navigation/native';
+import { Card } from '@/components/common';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 
+type TaskListNavigationProp = NavigationProp<{ TaskForm: undefined }>;
+
 export const TaskListScreen: React.FC = () => {
 	const dispatch = useAppDispatch();
-	const navigation = useNavigation<any>();
+	const navigation = useNavigation<TaskListNavigationProp>();
 	const { tasks, loading } = useAppSelector(state => state.task);
 	const [refreshing, setRefreshing] = React.useState(false);
 

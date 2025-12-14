@@ -8,8 +8,7 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 } from 'react-native';
-import { Button } from '@/components/ui/Button';
-import { Input, ImagePicker } from '@/components/common';
+import { Button, Input, ImagePicker } from '@/components/common';
 import { useAppDispatch } from '@/store/hooks';
 import { updateUserProfile } from '@/store/slices/userSlice';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
@@ -41,9 +40,10 @@ export const ProfileSetupScreen: React.FC = () => {
 			Alert.alert('Success', 'Profile setup complete!', [
 				{ text: 'OK', onPress: () => {} },
 			]);
-		} catch (error: any) {
+		} catch (error) {
 			console.error('Failed to update profile:', error);
-			Alert.alert('Error', error.message || 'Failed to update profile');
+			const message = error instanceof Error ? error.message : 'Failed to update profile';
+			Alert.alert('Error', message);
 		} finally {
 			setLoading(false);
 		}

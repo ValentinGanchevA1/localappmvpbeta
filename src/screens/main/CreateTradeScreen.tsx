@@ -19,11 +19,12 @@ const CreateTradeScreen: React.FC = () => {
       toUserId,
       items: itemsOffered.split(',').map(name => ({
         id: Math.random().toString(36).substr(2, 9),
-        name,
+        name: name.trim(),
         description: '',
-        ownerId: 'user1',
+        quantity: 1,
       })),
-      status: 'pending' as 'pending',
+      status: 'pending' as const,
+      createdAt: new Date().toISOString(),
     };
     dispatch(addTrade(newTrade));
     navigation.goBack();

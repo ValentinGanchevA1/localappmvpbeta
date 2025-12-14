@@ -3,3 +3,7 @@ export * from './user';
 export * from './task';
 export * from './location';
 export * from './navigation';
+export * from './error';
+export * from './trading';
+export * from './social';
+export * from './dating';

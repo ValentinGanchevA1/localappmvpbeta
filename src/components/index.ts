@@ -1,4 +1,3 @@
 // src/components/index.ts
-export * from './common/Button';
-export * from './common/Input';
-export * from './common/CodeInput';
+// Re-export all common components for convenience
+export * from './common';

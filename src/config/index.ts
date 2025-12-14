@@ -8,3 +8,5 @@ export const AppConfig = {
 };
 
 export { AppEnvironment };
+export * from './theme';
+export * from './styles';

@@ -7,8 +7,7 @@ import {
 	TouchableOpacity,
 	Alert,
 } from 'react-native';
-import { Avatar } from '@/components/common';
-import { Button } from '@/components/ui/Button';
+import { Avatar, Button } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';

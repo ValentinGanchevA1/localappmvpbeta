@@ -8,8 +8,7 @@ import {
 	Platform,
 	ScrollView,
 } from 'react-native';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/common';
+import { Button, Input } from '@/components/common';
 import { useAuth } from '@/hooks/useAuth';
 import { COLORS, SPACING, TYPOGRAPHY } from '@/config/theme';
 
@@ -56,8 +55,9 @@ export const SignupScreen: React.FC = () => {
 			} else if (result.meta.requestStatus === 'rejected') {
 				Alert.alert('Error', result.payload as string);
 			}
-		} catch (err: any) {
-			Alert.alert('Error', err.message || 'Registration failed');
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Registration failed';
+			Alert.alert('Error', message);
 		}
 	};
 

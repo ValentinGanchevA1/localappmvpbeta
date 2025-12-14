@@ -21,3 +21,17 @@ export interface ChatMessage {
   timestamp: number;
   status: 'sent' | 'delivered' | 'read';
 }
+
+export interface Conversation {
+  id: string;
+  participantIds: string[];
+  lastMessage?: ChatMessage;
+  unreadCount: number;
+  updatedAt: string;
+}
+
+export interface SocketMessageResponse {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}

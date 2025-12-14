@@ -19,13 +19,19 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 		AppState.currentState
 	);
 
+	// Track if initialization has already been attempted
+	const [hasInitialized, setHasInitialized] = useState(false);
+
 	// ============================================================================
 	// STEP 1: Initialize when user is authenticated
 	// ============================================================================
 	useEffect(() => {
-		const initializeApp = async () => {
-			if (!isAuthenticated || !user) return; // Wait for auth
+		// Prevent multiple initializations
+		if (hasInitialized) return;
+		if (!isAuthenticated || !user) return;
 
+		const initializeApp = async () => {
+			setHasInitialized(true);
 			console.log('[AppInitializer] Starting app initialization...');
 
 			// A) Start location tracking (don't crash app if it fails)
@@ -78,7 +84,7 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 		return () => {
 			// Cleanup
 		};
-	}, [isAuthenticated, user, dispatch, startTracking]);
+	}, [isAuthenticated, user, hasInitialized, dispatch, startTracking]);
 
 	// ============================================================================
 	// STEP 2: Handle app state changes (foreground/background)

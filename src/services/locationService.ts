@@ -45,7 +45,9 @@ export const locationService = {
         // This prevents crashes when getCurrentPosition is called immediately after permission grant
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
            console.log('[locationService] Permission granted, waiting for GPS initialization...');
-           await delay(1500);
+           // Increase delay to 2500ms to ensure GPS service is fully ready
+           await delay(2500);
+           console.log('[locationService] GPS initialization delay complete');
            return true;
         }
         return false;
@@ -60,6 +62,11 @@ export const locationService = {
 
   async getCurrentLocation(retryCount = 0): Promise<LocationData> {
     const maxRetries = 3;
+
+    // Add small delay on first attempt for Android to ensure GPS is ready
+    if (retryCount === 0 && Platform.OS === 'android') {
+      await delay(500);
+    }
 
     return new Promise((resolve, reject) => {
       console.log(`[locationService] Getting current location (attempt ${retryCount + 1}/${maxRetries + 1})...`);
