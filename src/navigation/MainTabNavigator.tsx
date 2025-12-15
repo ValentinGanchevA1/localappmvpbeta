@@ -7,10 +7,10 @@ import {
   MapScreen,
   ProfileScreen,
 } from '@/screens/main';
-import { SwipeScreen } from '@/screens/dating/SwipeScreen';
 import SocialNavigator from './SocialNavigator';
 import TradingNavigator from './TradingNavigator';
 import NotificationNavigator from './NotificationNavigator';
+import DatingNavigator from './DatingNavigator';
 import { MainTabParamList } from '@/types/navigation';
 import { COLORS, TYPOGRAPHY } from '@/config/theme';
 
@@ -110,7 +110,7 @@ const MainTabNavigator: React.FC = () => {
 
       <Tab.Screen
         name="Dating"
-        component={SwipeScreen}
+        component={DatingNavigator}
         options={{
           title: 'Dating',
           headerShown: false,

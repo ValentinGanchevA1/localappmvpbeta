@@ -2,7 +2,7 @@
 // Notification permission utilities with platform-specific handling
 
 import { Platform, Linking, Alert } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
 import { PermissionStatus } from '@/types/notifications';
 
 /**
@@ -69,16 +69,16 @@ export async function requestProvisionalPermission(): Promise<PermissionStatus> 
  * Map Firebase AuthorizationStatus to our PermissionStatus type
  */
 function mapAuthorizationStatus(
-  status: typeof messaging.AuthorizationStatus[keyof typeof messaging.AuthorizationStatus]
+  status: AuthorizationStatus
 ): PermissionStatus {
   switch (status) {
-    case messaging.AuthorizationStatus.AUTHORIZED:
+    case AuthorizationStatus.AUTHORIZED:
       return 'granted';
-    case messaging.AuthorizationStatus.PROVISIONAL:
+    case AuthorizationStatus.PROVISIONAL:
       return 'granted'; // Treat provisional as granted for simplicity
-    case messaging.AuthorizationStatus.DENIED:
+    case AuthorizationStatus.DENIED:
       return 'denied';
-    case messaging.AuthorizationStatus.NOT_DETERMINED:
+    case AuthorizationStatus.NOT_DETERMINED:
     default:
       return 'not_determined';
   }

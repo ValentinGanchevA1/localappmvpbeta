@@ -26,101 +26,434 @@ const conversations = new Map(); // conversationId -> messages[]
 
 
 // ============================================================================
-// DATING ENDPOINTS
+// DATING ENDPOINTS - Comprehensive Dating API
 // ============================================================================
 
-app.get('/api/dating/nearby', (req, res) => {
-  const { lat, lng } = req.query;
+// In-memory dating storage
+const datingProfiles = new Map();
+const datingMatches = new Map();
+const datingLikes = new Map();
+const datingSwipes = new Map();
+const datingPreferences = new Map();
+const datingStats = new Map();
+const blockedDatingUsers = new Map();
 
-  // Mock nearby dating profiles
-  const mockProfiles = [
-    {
-      id: 'user_sarah_1',
-      name: 'Sarah',
-      age: 26,
-      gender: 'female',
-      lookingFor: 'male',
-      photos: ['https://via.placeholder.com/400x600?text=Sarah'],
-      bio: 'Adventure seeker, loves hiking and travel ✈️',
-      interests: ['hiking', 'travel', 'photography', 'cooking'],
-      location: { latitude: parseFloat(lat) + 0.01, longitude: parseFloat(lng) + 0.01 },
-      datingPreferences: {
-        ageRange: { min: 24, max: 35 },
-        maxDistance: 50,
-        sharedInterests: true,
-      },
-      createdAt: new Date(),
-    },
-    {
-      id: 'user_emma_2',
-      name: 'Emma',
-      age: 24,
-      gender: 'female',
-      lookingFor: 'male',
-      photos: ['https://via.placeholder.com/400x600?text=Emma'],
-      bio: 'Artist & coffee lover ☕',
-      interests: ['art', 'coffee', 'books', 'music'],
-      location: { latitude: parseFloat(lat) + 0.02, longitude: parseFloat(lng) - 0.01 },
-      datingPreferences: {
-        ageRange: { min: 25, max: 33 },
-        maxDistance: 50,
-        sharedInterests: true,
-      },
-      createdAt: new Date(),
-    },
-    {
-      id: 'user_olivia_3',
-      name: 'Olivia',
-      age: 28,
-      gender: 'female',
-      lookingFor: 'male',
-      photos: ['https://via.placeholder.com/400x600?text=Olivia'],
-      bio: 'Fitness enthusiast 💪 Always up for new experiences',
-      interests: ['fitness', 'yoga', 'cooking', 'travel'],
-      location: { latitude: parseFloat(lat) - 0.015, longitude: parseFloat(lng) + 0.015 },
-      datingPreferences: {
-        ageRange: { min: 26, max: 36 },
-        maxDistance: 50,
-        sharedInterests: true,
-      },
-      createdAt: new Date(),
-    },
-  ];
-
-  console.log(`[Dating] Fetched ${mockProfiles.length} nearby profiles`);
-  res.json(mockProfiles);
+// Helper: Generate mock dating profile
+const generateDatingProfile = (id, name, age, gender, lat, lng) => ({
+  id: `profile_${id}`,
+  userId: `user_${id}`,
+  name,
+  age,
+  birthDate: new Date(Date.now() - age * 365 * 24 * 60 * 60 * 1000).toISOString(),
+  gender,
+  lookingFor: gender === 'female' ? 'male' : 'female',
+  relationshipGoal: ['long_term', 'short_term', 'casual', 'friendship', 'not_sure'][Math.floor(Math.random() * 5)],
+  interests: ['travel', 'music', 'fitness', 'cooking', 'photography', 'reading', 'hiking', 'movies'].sort(() => 0.5 - Math.random()).slice(0, 4 + Math.floor(Math.random() * 3)),
+  bio: `Hey there! I'm ${name}. Looking for someone to share life's adventures with.`,
+  prompts: [
+    { id: 'p1', question: "I'm looking for someone who...", answer: 'Can make me laugh and is up for spontaneous adventures' },
+    { id: 'p2', question: 'My ideal first date would be...', answer: 'Coffee, then a walk in the park if we hit it off' },
+  ],
+  photos: [
+    { id: 'photo1', url: `https://i.pravatar.cc/400?u=${id}`, isMain: true, order: 0, uploadedAt: new Date().toISOString() },
+    { id: 'photo2', url: `https://i.pravatar.cc/400?u=${id}_2`, isMain: false, order: 1, uploadedAt: new Date().toISOString() },
+  ],
+  location: {
+    latitude: lat + (Math.random() - 0.5) * 0.1,
+    longitude: lng + (Math.random() - 0.5) * 0.1,
+    city: 'San Francisco',
+    country: 'USA',
+  },
+  basics: {
+    height: 160 + Math.floor(Math.random() * 30),
+    bodyType: ['slim', 'athletic', 'average', 'curvy'][Math.floor(Math.random() * 4)],
+    ethnicity: 'Prefer not to say',
+    languages: ['English', 'Spanish'].slice(0, 1 + Math.floor(Math.random() * 2)),
+  },
+  lifestyle: {
+    drinking: ['never', 'rarely', 'socially', 'regularly'][Math.floor(Math.random() * 4)],
+    smoking: ['never', 'sometimes', 'regularly'][Math.floor(Math.random() * 3)],
+    exercise: ['never', 'sometimes', 'often', 'daily'][Math.floor(Math.random() * 4)],
+    diet: 'omnivore',
+    pets: 'love_them',
+    children: 'not_sure',
+  },
+  work: {
+    jobTitle: ['Software Engineer', 'Designer', 'Marketing Manager', 'Teacher', 'Nurse', 'Consultant'][Math.floor(Math.random() * 6)],
+    company: 'Some Company',
+    education: ['bachelors', 'masters', 'doctorate'][Math.floor(Math.random() * 3)],
+    school: 'State University',
+  },
+  zodiacSign: ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'][Math.floor(Math.random() * 12)],
+  datingPreferences: {
+    ageRange: { min: 22, max: 40 },
+    maxDistance: 50,
+    genderPreference: gender === 'female' ? 'male' : 'female',
+    relationshipGoals: ['long_term', 'short_term', 'casual'],
+    showOnlyVerified: false,
+    showOnlyWithBio: false,
+    showOnlyWithPhotos: true,
+    showOnlyActive: false,
+    prioritizeSharedInterests: true,
+    hideAge: false,
+    hideDistance: false,
+    incognitoMode: false,
+  },
+  verificationStatus: Math.random() > 0.7 ? 'verified' : 'none',
+  isActive: true,
+  lastActive: new Date().toISOString(),
+  createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+  updatedAt: new Date().toISOString(),
+  distance: Math.floor(Math.random() * 30) + 1,
+  compatibilityScore: Math.floor(Math.random() * 30) + 70,
 });
 
+// Generate initial mock profiles
+const mockDatingProfiles = [
+  generateDatingProfile('sarah', 'Sarah', 26, 'female', 37.7749, -122.4194),
+  generateDatingProfile('emma', 'Emma', 24, 'female', 37.7749, -122.4194),
+  generateDatingProfile('olivia', 'Olivia', 28, 'female', 37.7749, -122.4194),
+  generateDatingProfile('sophia', 'Sophia', 25, 'female', 37.7749, -122.4194),
+  generateDatingProfile('ava', 'Ava', 27, 'female', 37.7749, -122.4194),
+  generateDatingProfile('mia', 'Mia', 23, 'female', 37.7749, -122.4194),
+  generateDatingProfile('james', 'James', 28, 'male', 37.7749, -122.4194),
+  generateDatingProfile('david', 'David', 30, 'male', 37.7749, -122.4194),
+  generateDatingProfile('michael', 'Michael', 26, 'male', 37.7749, -122.4194),
+];
+
+mockDatingProfiles.forEach(p => datingProfiles.set(p.id, p));
+
+// --- Dating Profile Endpoints ---
+app.get('/api/dating/profile', (req, res) => {
+  // Return mock current user profile
+  res.json(generateDatingProfile('current_user', 'You', 27, 'male', 37.7749, -122.4194));
+});
+
+app.post('/api/dating/profile', (req, res) => {
+  const profile = { id: `profile_${Date.now()}`, ...req.body, createdAt: new Date().toISOString() };
+  datingProfiles.set(profile.id, profile);
+  res.status(201).json(profile);
+});
+
+app.patch('/api/dating/profile', (req, res) => {
+  const profile = generateDatingProfile('current_user', 'You', 27, 'male', 37.7749, -122.4194);
+  Object.assign(profile, req.body, { updatedAt: new Date().toISOString() });
+  res.json(profile);
+});
+
+app.get('/api/dating/profile/:userId', (req, res) => {
+  const profile = datingProfiles.get(`profile_${req.params.userId}`) || generateDatingProfile(req.params.userId, 'User', 25, 'female', 37.7749, -122.4194);
+  res.json(profile);
+});
+
+app.patch('/api/dating/profile/active', (req, res) => {
+  const profile = generateDatingProfile('current_user', 'You', 27, 'male', 37.7749, -122.4194);
+  profile.isActive = req.body.isActive;
+  res.json(profile);
+});
+
+// --- Discovery Endpoints ---
+app.get('/api/dating/nearby', (req, res) => {
+  const profiles = Array.from(datingProfiles.values()).slice(0, 10);
+  console.log(`[Dating] Fetched ${profiles.length} nearby profiles`);
+  res.json(profiles);
+});
+
+app.get('/api/dating/recommendations', (req, res) => {
+  const profiles = Array.from(datingProfiles.values())
+    .sort((a, b) => (b.compatibilityScore || 0) - (a.compatibilityScore || 0))
+    .slice(0, 20);
+  res.json(profiles);
+});
+
+app.post('/api/dating/refresh', (req, res) => {
+  const profiles = Array.from(datingProfiles.values()).slice(0, 10);
+  res.json(profiles);
+});
+
+// --- Swipe Endpoints ---
 app.post('/api/dating/swipe', (req, res) => {
   const { userId, targetUserId, action } = req.body;
-
-  const swipeRecord = {
+  const swipe = {
     id: `swipe_${Date.now()}`,
     userId,
     targetUserId,
     action,
-    timestamp: new Date(),
+    timestamp: new Date().toISOString(),
+    seen: false,
   };
 
-  console.log(`[Dating] Swipe recorded: ${userId} ${action} ${targetUserId}`);
+  // Check for match (50% chance on like)
+  let match = null;
+  if ((action === 'like' || action === 'super_like') && Math.random() > 0.5) {
+    const targetProfile = datingProfiles.get(`profile_${targetUserId}`) || generateDatingProfile(targetUserId, 'Match', 25, 'female', 37.7749, -122.4194);
+    match = {
+      id: `match_${Date.now()}`,
+      user1Id: userId,
+      user2Id: targetUserId,
+      user1Profile: generateDatingProfile('current_user', 'You', 27, 'male', 37.7749, -122.4194),
+      user2Profile: targetProfile,
+      matchedAt: new Date().toISOString(),
+      lastMessage: null,
+      lastMessageAt: null,
+      unreadCount: 0,
+      status: 'active',
+      matchedVia: action === 'super_like' ? 'super_like' : 'mutual_like',
+      iceBreakers: ['What brings you here?', 'Whats your favorite hobby?', 'Been on any adventures lately?'],
+    };
+    datingMatches.set(match.id, match);
+  }
 
-  res.status(201).json(swipeRecord);
+  console.log(`[Dating] Swipe: ${userId} ${action} ${targetUserId}${match ? ' - MATCH!' : ''}`);
+
+  res.status(201).json({
+    swipe,
+    match,
+    likesRemaining: 95,
+    superLikesRemaining: action === 'super_like' ? 0 : 1,
+  });
 });
 
+app.post('/api/dating/rewind', (req, res) => {
+  const profile = Array.from(datingProfiles.values())[0];
+  res.json({ profile, rewindsRemaining: 2 });
+});
+
+// --- Matches Endpoints ---
 app.get('/api/dating/matches', (req, res) => {
-  // Return user's matches
-  const mockMatches = [
+  const matches = Array.from(datingMatches.values());
+  if (matches.length === 0) {
+    // Return mock matches
+    const mockMatches = [
+      {
+        id: 'match_1',
+        user1Id: 'current_user',
+        user2Id: 'user_sarah',
+        user1Profile: generateDatingProfile('current_user', 'You', 27, 'male', 37.7749, -122.4194),
+        user2Profile: datingProfiles.get('profile_sarah'),
+        matchedAt: new Date(Date.now() - 86400000).toISOString(),
+        lastMessage: { id: 'msg_1', content: 'Hey! Nice to match with you', senderId: 'user_sarah', timestamp: new Date().toISOString() },
+        lastMessageAt: new Date().toISOString(),
+        unreadCount: 1,
+        status: 'active',
+        matchedVia: 'mutual_like',
+      },
+      {
+        id: 'match_2',
+        user1Id: 'current_user',
+        user2Id: 'user_emma',
+        user1Profile: generateDatingProfile('current_user', 'You', 27, 'male', 37.7749, -122.4194),
+        user2Profile: datingProfiles.get('profile_emma'),
+        matchedAt: new Date(Date.now() - 172800000).toISOString(),
+        lastMessage: null,
+        lastMessageAt: null,
+        unreadCount: 0,
+        status: 'active',
+        matchedVia: 'super_like',
+      },
+    ];
+    return res.json(mockMatches);
+  }
+  res.json(matches);
+});
+
+app.get('/api/dating/matches/new/count', (req, res) => {
+  res.json({ count: 2 });
+});
+
+app.get('/api/dating/matches/:matchId', (req, res) => {
+  const match = datingMatches.get(req.params.matchId);
+  if (!match) {
+    return res.status(404).json({ message: 'Match not found' });
+  }
+  res.json(match);
+});
+
+app.delete('/api/dating/matches/:matchId', (req, res) => {
+  datingMatches.delete(req.params.matchId);
+  res.json({ success: true });
+});
+
+app.patch('/api/dating/matches/:matchId/archive', (req, res) => {
+  const match = datingMatches.get(req.params.matchId);
+  if (match) {
+    match.status = 'archived';
+    res.json(match);
+  } else {
+    res.status(404).json({ message: 'Match not found' });
+  }
+});
+
+app.patch('/api/dating/matches/:matchId/unarchive', (req, res) => {
+  const match = datingMatches.get(req.params.matchId);
+  if (match) {
+    match.status = 'active';
+    res.json(match);
+  } else {
+    res.status(404).json({ message: 'Match not found' });
+  }
+});
+
+app.patch('/api/dating/matches/:matchId/seen', (req, res) => {
+  res.json({ success: true });
+});
+
+// --- Match Messages ---
+app.get('/api/dating/matches/:matchId/messages', (req, res) => {
+  res.json([
+    { id: 'msg_1', content: 'Hey! Nice to match with you!', senderId: 'other_user', timestamp: new Date(Date.now() - 3600000).toISOString() },
+    { id: 'msg_2', content: 'Hi! Thanks, likewise!', senderId: 'current_user', timestamp: new Date(Date.now() - 1800000).toISOString() },
+  ]);
+});
+
+app.post('/api/dating/matches/:matchId/messages', (req, res) => {
+  const message = {
+    id: `msg_${Date.now()}`,
+    content: req.body.content,
+    senderId: 'current_user',
+    timestamp: new Date().toISOString(),
+  };
+  res.status(201).json(message);
+});
+
+app.patch('/api/dating/matches/:matchId/messages/read', (req, res) => {
+  res.json({ success: true });
+});
+
+// --- Likes Endpoints ---
+app.get('/api/dating/likes', (req, res) => {
+  const likes = [
     {
-      id: 'match_1',
-      user1Id: 'current_user',
-      user2Id: 'user_sarah_1',
-      matchedAt: new Date(Date.now() - 86400000),
-      messages: [],
-      status: 'active',
+      id: 'like_1',
+      fromUserId: 'user_mia',
+      toUserId: 'current_user',
+      fromProfile: datingProfiles.get('profile_mia'),
+      isSuperLike: true,
+      createdAt: new Date(Date.now() - 7200000).toISOString(),
+      seen: false,
+    },
+    {
+      id: 'like_2',
+      fromUserId: 'user_ava',
+      toUserId: 'current_user',
+      fromProfile: datingProfiles.get('profile_ava'),
+      isSuperLike: false,
+      createdAt: new Date(Date.now() - 14400000).toISOString(),
+      seen: false,
     },
   ];
+  res.json(likes);
+});
 
-  res.json(mockMatches);
+app.get('/api/dating/likes/count', (req, res) => {
+  res.json({ count: 5 });
+});
+
+app.patch('/api/dating/likes/:likeId/seen', (req, res) => {
+  res.json({ success: true });
+});
+
+// --- Preferences Endpoints ---
+app.get('/api/dating/preferences', (req, res) => {
+  res.json({
+    ageRange: { min: 22, max: 35 },
+    maxDistance: 50,
+    genderPreference: 'female',
+    relationshipGoals: ['long_term', 'short_term'],
+    showOnlyVerified: false,
+    showOnlyWithBio: false,
+    showOnlyWithPhotos: true,
+    showOnlyActive: false,
+    prioritizeSharedInterests: true,
+    hideAge: false,
+    hideDistance: false,
+    incognitoMode: false,
+  });
+});
+
+app.patch('/api/dating/preferences', (req, res) => {
+  res.json({ ...req.body });
+});
+
+// --- Stats Endpoints ---
+app.get('/api/dating/stats', (req, res) => {
+  res.json({
+    totalLikes: 45,
+    totalPasses: 30,
+    totalSuperLikes: 5,
+    totalMatches: 8,
+    likesRemaining: 95,
+    superLikesRemaining: 1,
+    rewindsRemaining: 3,
+    boostsRemaining: 1,
+    nextRefresh: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+    isBoostActive: false,
+  });
+});
+
+// --- Boost Endpoints ---
+app.post('/api/dating/boost', (req, res) => {
+  res.json({
+    id: `boost_${Date.now()}`,
+    userId: 'current_user',
+    startedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    multiplier: 2,
+    isActive: true,
+  });
+});
+
+app.get('/api/dating/boost/status', (req, res) => {
+  res.json(null);
+});
+
+// --- Block & Report Endpoints ---
+app.post('/api/dating/report', (req, res) => {
+  res.json({
+    id: `report_${Date.now()}`,
+    reporterId: 'current_user',
+    reportedUserId: req.body.reportedUserId,
+    reason: req.body.reason,
+    details: req.body.details,
+    createdAt: new Date().toISOString(),
+    status: 'pending',
+  });
+});
+
+app.post('/api/dating/block/:userId', (req, res) => {
+  blockedDatingUsers.set(req.params.userId, true);
+  res.json({ success: true });
+});
+
+app.delete('/api/dating/block/:userId', (req, res) => {
+  blockedDatingUsers.delete(req.params.userId);
+  res.json({ success: true });
+});
+
+app.get('/api/dating/blocked', (req, res) => {
+  res.json([]);
+});
+
+// --- Verification Endpoints ---
+app.post('/api/dating/verify', (req, res) => {
+  res.json({ status: 'pending' });
+});
+
+app.get('/api/dating/verify/status', (req, res) => {
+  res.json({ status: 'none' });
+});
+
+// --- Photo Endpoints ---
+app.post('/api/dating/photos', (req, res) => {
+  res.json({ photoId: `photo_${Date.now()}`, url: 'https://via.placeholder.com/400x600' });
+});
+
+app.delete('/api/dating/photos/:photoId', (req, res) => {
+  res.json({ success: true });
+});
+
+app.put('/api/dating/photos/reorder', (req, res) => {
+  res.json({ success: true });
 });
 
 // ============================================================================

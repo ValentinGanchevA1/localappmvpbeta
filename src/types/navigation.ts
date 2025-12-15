@@ -3,6 +3,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { CompositeNavigationProp, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TradingStackParamList } from '@/navigation/TradingNavigator';
+import { DatingProfile } from './dating';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -61,10 +62,18 @@ export type NotificationStackParamList = {
   NotificationSettings: undefined;
 };
 
+export type DatingStackParamList = {
+  Swipe: undefined;
+  Matches: undefined;
+  DatingPreferences: undefined;
+  ProfileDetail: {profile: DatingProfile};
+  DatingChat: {matchId: string; userId: string; username: string};
+};
+
 export type MainTabParamList = {
   Map: undefined;
   Social: NavigatorScreenParams<SocialStackParamList>;
-  Dating: undefined;
+  Dating: NavigatorScreenParams<DatingStackParamList>;
   Trading: NavigatorScreenParams<TradingStackParamList>;
   Notifications: NavigatorScreenParams<NotificationStackParamList>;
   Profile: undefined;
