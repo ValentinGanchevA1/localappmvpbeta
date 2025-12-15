@@ -15,10 +15,10 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import {useAppDispatch, useAppSelector} from '@/store/hooks';
+import {useAppDispatch} from '@/store/hooks';
 import {recordSwipe, blockDatingUser, reportProfile} from '@/store/slices/datingSlice';
 import {DatingProfile, DatingPhoto, ReportReason} from '@/types/dating';
-import {COLORS, SPACING, TYPOGRAPHY} from '@/config/theme';
+import {COLORS, SPACING} from '@/config/theme';
 
 // ============================================
 // Types
@@ -84,43 +84,39 @@ export const ProfileDetailScreen: React.FC = () => {
   const profile = route.params?.profile;
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  if (!profile) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>Profile not found</Text>
-      </SafeAreaView>
-    );
-  }
-
   // Get photo URL helper
   const getPhotoUrl = (photo: DatingPhoto | string): string => {
     if (typeof photo === 'string') return photo;
     return photo.url;
   };
 
-  // Photos array
-  const photos = profile.photos && profile.photos.length > 0
+  // Photos array - use placeholder if no profile or photos
+  const photos = profile?.photos && profile.photos.length > 0
     ? profile.photos
     : ['https://via.placeholder.com/400x500?text=No+Photo'];
 
-  // Handle swipe actions
+  // Handle swipe actions - all hooks must be called unconditionally
   const handleLike = useCallback(() => {
+    if (!profile) return;
     dispatch(recordSwipe({targetUserId: profile.userId, action: 'like'}));
     navigation.goBack();
-  }, [dispatch, profile.userId, navigation]);
+  }, [dispatch, profile, navigation]);
 
   const handlePass = useCallback(() => {
+    if (!profile) return;
     dispatch(recordSwipe({targetUserId: profile.userId, action: 'pass'}));
     navigation.goBack();
-  }, [dispatch, profile.userId, navigation]);
+  }, [dispatch, profile, navigation]);
 
   const handleSuperLike = useCallback(() => {
+    if (!profile) return;
     dispatch(recordSwipe({targetUserId: profile.userId, action: 'super_like'}));
     navigation.goBack();
-  }, [dispatch, profile.userId, navigation]);
+  }, [dispatch, profile, navigation]);
 
   // Handle block
   const handleBlock = useCallback(() => {
+    if (!profile) return;
     Alert.alert(
       'Block User',
       `Are you sure you want to block ${profile.name}? You won't see each other anymore.`,
@@ -140,6 +136,7 @@ export const ProfileDetailScreen: React.FC = () => {
 
   // Handle report
   const handleReport = useCallback(() => {
+    if (!profile) return;
     const reasons: {label: string; value: ReportReason}[] = [
       {label: 'Fake Profile', value: 'fake_profile'},
       {label: 'Inappropriate Photos', value: 'inappropriate_photos'},
@@ -166,7 +163,16 @@ export const ProfileDetailScreen: React.FC = () => {
         {text: 'Cancel', style: 'cancel'},
       ]
     );
-  }, [dispatch, profile.userId]);
+  }, [dispatch, profile]);
+
+  // Early return after all hooks are called
+  if (!profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Profile not found</Text>
+      </SafeAreaView>
+    );
+  }
 
   // Format lifestyle values
   const formatLifestyle = (key: string, value: string): string => {
@@ -519,7 +525,7 @@ export const ProfileDetailScreen: React.FC = () => {
           </View>
 
           {/* Spacer for bottom buttons */}
-          <View style={{height: 100}} />
+          <View style={styles.bottomSpacer} />
         </View>
       </ScrollView>
 
@@ -854,6 +860,9 @@ const styles = StyleSheet.create({
   likeIcon: {
     fontSize: 24,
     color: COLORS.WHITE,
+  },
+  bottomSpacer: {
+    height: 100,
   },
 });
 

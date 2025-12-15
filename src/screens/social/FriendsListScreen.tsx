@@ -17,10 +17,7 @@ import {
   fetchFriends,
   selectFriends,
   selectFriendsLoading,
-  selectFriendsError,
   selectPendingRequestsCount,
-  removeFriend,
-  updateFriend,
 } from '@/store/slices/socialGraphSlice';
 import {FriendCard} from '@/components/social';
 import {FriendRelationship} from '@/types/socialGraph';
@@ -33,7 +30,6 @@ const FriendsListScreen: React.FC = () => {
 
   const friends = useAppSelector(selectFriends);
   const loading = useAppSelector(selectFriendsLoading);
-  const error = useAppSelector(selectFriendsError);
   const pendingRequestsCount = useAppSelector(selectPendingRequestsCount);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,19 +74,6 @@ const FriendsListScreen: React.FC = () => {
       userId: friend.friendId,
       username: friend.nickname || friend.friendProfile.username,
     });
-  };
-
-  const handleToggleFavorite = async (friend: FriendRelationship) => {
-    await dispatch(
-      updateFriend({
-        friendId: friend.friendId,
-        updates: {isFavorite: !friend.isFavorite},
-      }),
-    );
-  };
-
-  const handleRemoveFriend = async (friend: FriendRelationship) => {
-    await dispatch(removeFriend(friend.friendId));
   };
 
   const renderFriendItem = ({item}: {item: FriendRelationship}) => (

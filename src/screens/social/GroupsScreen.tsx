@@ -19,7 +19,6 @@ import {
   leaveGroup,
   selectGroups,
   selectGroupsLoading,
-  selectGroupInvites,
   selectGroupInvitesCount,
 } from '@/store/slices/socialGraphSlice';
 import {GroupCard} from '@/components/social';

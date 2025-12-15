@@ -20,7 +20,6 @@ import {
   sendFriendRequest,
   selectSuggestions,
   selectSuggestionsLoading,
-  selectDiscoveryPreferences,
 } from '@/store/slices/socialGraphSlice';
 import {SuggestionCard} from '@/components/social';
 import {discoveryApi} from '@/api/socialGraphApi';
@@ -32,7 +31,6 @@ const FriendDiscoveryScreen: React.FC = () => {
 
   const suggestions = useAppSelector(selectSuggestions);
   const loading = useAppSelector(selectSuggestionsLoading);
-  const preferences = useAppSelector(selectDiscoveryPreferences);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserConnection[]>([]);

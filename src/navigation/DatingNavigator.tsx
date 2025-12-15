@@ -8,7 +8,7 @@ import {MatchesScreen} from '@/screens/dating/MatchesScreen';
 import {DatingPreferencesScreen} from '@/screens/dating/DatingPreferencesScreen';
 import {ProfileDetailScreen} from '@/screens/dating/ProfileDetailScreen';
 import {DatingProfile} from '@/types/dating';
-import {COLORS, TYPOGRAPHY} from '@/config/theme';
+import {COLORS} from '@/config/theme';
 
 // ============================================
 // Navigation Types

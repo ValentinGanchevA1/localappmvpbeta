@@ -7,7 +7,6 @@ import {
   DiscoveryReason,
   DiscoverySource,
   ConnectionStrength,
-  UserConnection,
   GraphNode,
   GraphEdge,
   SocialGraph,
@@ -18,7 +17,7 @@ import {
   Group,
   SocialCircle,
 } from '@/types/socialGraph';
-import {PublicProfile, GeoLocation} from '@/types/social';
+import {PublicProfile} from '@/types/social';
 
 // Weight configuration for scoring
 const SCORING_WEIGHTS = {
@@ -208,13 +207,11 @@ export class SocialGraphService {
    * Calculate mutual friends between two users
    */
   private static calculateMutualFriendsScore(
-    userId1: string,
+    _userId1: string,
     userId2: string,
     user1Friends: FriendRelationship[],
     allUsers: PublicProfile[],
   ): {score: number; count: number} {
-    const user1FriendIds = new Set(user1Friends.map(f => f.friendId));
-
     // Find user2's friends from allUsers (simplified - in production would query)
     // For now, assume we have this data or can derive it
     const mutualCount = user1Friends.filter(f =>

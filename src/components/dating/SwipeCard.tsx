@@ -12,11 +12,10 @@ import {
   Dimensions,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  ScrollView,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {DatingProfile, DatingPhoto} from '@/types/dating';
-import {COLORS, SPACING, TYPOGRAPHY} from '@/config/theme';
+import {COLORS} from '@/config/theme';
 
 // ============================================
 // Types
@@ -132,7 +131,8 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
   const pan = useRef(new Animated.ValueXY()).current;
-  const scale = useRef(new Animated.Value(isFirst ? 1 : 0.95)).current;
+  // Scale is kept for potential future animation use
+  useRef(new Animated.Value(isFirst ? 1 : 0.95));
 
   // Get photos array (handle both DatingPhoto[] and string[])
   const photos = useMemo(() => {
@@ -200,7 +200,7 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
         onPanResponderMove: Animated.event([null, {dx: pan.x, dy: pan.y}], {
           useNativeDriver: false,
         }),
-        onPanResponderRelease: (_, {dx, dy, vx, vy}) => {
+        onPanResponderRelease: (_, {dx, dy, vx, vy: _vy}) => {
           pan.flattenOffset();
 
           // Check for super like (swipe up)

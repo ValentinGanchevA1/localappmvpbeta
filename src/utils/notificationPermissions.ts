@@ -2,7 +2,14 @@
 // Notification permission utilities with platform-specific handling
 
 import { Platform, Linking, Alert } from 'react-native';
-import messaging, { AuthorizationStatus } from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  hasPermission,
+  requestPermission as fcmRequestPermission,
+  AuthorizationStatus,
+} from '@react-native-firebase/messaging';
+import type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { getApp } from '@react-native-firebase/app';
 import { PermissionStatus } from '@/types/notifications';
 
 /**
@@ -10,7 +17,8 @@ import { PermissionStatus } from '@/types/notifications';
  */
 export async function checkNotificationPermission(): Promise<PermissionStatus> {
   try {
-    const authStatus = await messaging().hasPermission();
+    const messaging = getMessaging(getApp());
+    const authStatus = await hasPermission(messaging);
     return mapAuthorizationStatus(authStatus);
   } catch (error) {
     console.error('[NotificationPermissions] Check permission error:', error);
@@ -25,12 +33,8 @@ export async function requestNotificationPermission(): Promise<PermissionStatus>
   try {
     // On Android 13+, we need to request POST_NOTIFICATIONS permission
     // Firebase handles this automatically when we call requestPermission()
-    const authStatus = await messaging().requestPermission({
-      sound: true,
-      badge: true,
-      alert: true,
-      provisional: false, // Set to true for provisional (quiet) notifications on iOS
-    });
+    const messaging = getMessaging(getApp());
+    const authStatus = await fcmRequestPermission(messaging);
 
     const status = mapAuthorizationStatus(authStatus);
     console.log('[NotificationPermissions] Permission result:', status);
@@ -51,12 +55,8 @@ export async function requestProvisionalPermission(): Promise<PermissionStatus> 
   }
 
   try {
-    const authStatus = await messaging().requestPermission({
-      sound: false,
-      badge: true,
-      alert: true,
-      provisional: true,
-    });
+    const messaging = getMessaging(getApp());
+    const authStatus = await fcmRequestPermission(messaging);
 
     return mapAuthorizationStatus(authStatus);
   } catch (error) {
@@ -69,7 +69,7 @@ export async function requestProvisionalPermission(): Promise<PermissionStatus> 
  * Map Firebase AuthorizationStatus to our PermissionStatus type
  */
 function mapAuthorizationStatus(
-  status: AuthorizationStatus
+  status: FirebaseMessagingTypes.AuthorizationStatus
 ): PermissionStatus {
   switch (status) {
     case AuthorizationStatus.AUTHORIZED:

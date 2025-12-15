@@ -5,20 +5,23 @@ import axiosInstance from './axiosInstance';
 import {
   DatingProfile,
   DatingPreferences,
-  SwipeAction,
   SwipeActionType,
   Match,
   Like,
   UserDatingStats,
   Boost,
   UpdateDatingProfilePayload,
-  SwipePayload,
   SwipeResponse,
   FetchProfilesParams,
-  UpdatePreferencesPayload,
   ProfileReport,
   ReportReason,
+  DEFAULT_DATING_PREFERENCES,
+  FREE_DAILY_LIMITS,
 } from '@/types/dating';
+import {MOCK_DATING_PROFILES, getMockDatingProfiles} from '@/data/mockDatingProfiles';
+
+// Flag to enable mock data when backend is unavailable
+const USE_MOCK_FALLBACK = __DEV__;
 
 // ============================================
 // Request/Response Types
@@ -78,6 +81,34 @@ export const datingApi = {
       const response = await axiosInstance.get('/api/dating/profile');
       return response.data;
     } catch (error: any) {
+      // Return mock user profile in dev mode
+      if (USE_MOCK_FALLBACK) {
+        console.log('[DatingAPI] Using mock user profile (backend unavailable)');
+        return {
+          id: 'current-user',
+          userId: 'current-user-id',
+          name: 'You',
+          age: 28,
+          gender: 'male',
+          lookingFor: 'everyone',
+          relationshipGoal: 'long_term',
+          interests: ['Travel', 'Music', 'Coffee', 'Hiking'],
+          bio: 'This is your profile.',
+          prompts: [],
+          photos: [],
+          location: {latitude: 37.7749, longitude: -122.4194, city: 'San Francisco'},
+          basics: {height: 175},
+          lifestyle: {drinking: 'socially', smoking: 'never', exercise: 'often'},
+          work: {jobTitle: 'Developer'},
+          datingPreferences: DEFAULT_DATING_PREFERENCES,
+          verificationStatus: 'verified',
+          isActive: true,
+          lastActive: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -219,6 +250,13 @@ export const datingApi = {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching nearby profiles:', error);
+
+      // Return mock data in dev mode when backend is unavailable
+      if (USE_MOCK_FALLBACK) {
+        console.log('[DatingAPI] Using mock profiles (backend unavailable)');
+        return getMockDatingProfiles(undefined, undefined, params.limit || 20);
+      }
+
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -235,6 +273,12 @@ export const datingApi = {
       const response = await axiosInstance.get('/api/dating/recommendations', { params });
       return response.data;
     } catch (error: any) {
+      // Return mock data in dev mode when backend is unavailable
+      if (USE_MOCK_FALLBACK) {
+        console.log('[DatingAPI] Using mock recommendations (backend unavailable)');
+        return getMockDatingProfiles(undefined, undefined, params.limit || 20);
+      }
+
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -280,6 +324,68 @@ export const datingApi = {
       const response = await axiosInstance.post('/api/dating/swipe', params);
       return response.data;
     } catch (error: any) {
+      // Return mock swipe response in dev mode
+      if (USE_MOCK_FALLBACK) {
+        console.log('[DatingAPI] Using mock swipe response (backend unavailable)');
+
+        // Simulate a match occasionally (30% chance on like/super_like)
+        const isMatch =
+          params.action !== 'pass' && Math.random() < 0.3;
+
+        const targetProfile = MOCK_DATING_PROFILES.find(p => p.userId === params.targetUserId);
+
+        let match: Match | null = null;
+        if (isMatch && targetProfile) {
+          match = {
+            id: `match-${Date.now()}`,
+            user1Id: params.userId,
+            user2Id: params.targetUserId,
+            user1Profile: {
+              id: 'current-user',
+              userId: params.userId,
+              name: 'You',
+              age: 28,
+              gender: 'male',
+              lookingFor: 'everyone',
+              relationshipGoal: 'long_term',
+              interests: [],
+              bio: '',
+              prompts: [],
+              photos: [],
+              location: {latitude: 37.7749, longitude: -122.4194},
+              basics: {},
+              lifestyle: {drinking: 'socially', smoking: 'never', exercise: 'often'},
+              work: {},
+              datingPreferences: DEFAULT_DATING_PREFERENCES,
+              verificationStatus: 'verified',
+              isActive: true,
+              lastActive: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            user2Profile: targetProfile,
+            matchedAt: new Date().toISOString(),
+            unreadCount: 0,
+            status: 'active',
+            matchedVia: params.action === 'super_like' ? 'super_like' : 'mutual_like',
+          };
+        }
+
+        return {
+          swipe: {
+            id: `swipe-${Date.now()}`,
+            userId: params.userId,
+            targetUserId: params.targetUserId,
+            action: params.action,
+            timestamp: new Date().toISOString(),
+            seen: false,
+          },
+          match,
+          likesRemaining: params.action === 'like' ? 99 : 100,
+          superLikesRemaining: params.action === 'super_like' ? 0 : 1,
+        };
+      }
+
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -316,6 +422,12 @@ export const datingApi = {
       const response = await axiosInstance.get('/api/dating/matches', { params });
       return response.data;
     } catch (error: any) {
+      // Return empty matches in dev mode (matches are created from swipes)
+      if (USE_MOCK_FALLBACK) {
+        console.log('[DatingAPI] Using empty matches (backend unavailable)');
+        return [];
+      }
+
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -350,7 +462,7 @@ export const datingApi = {
     try {
       const response = await axiosInstance.get('/api/dating/matches/new/count');
       return response.data.count;
-    } catch (error: any) {
+    } catch {
       return 0;
     }
   },
@@ -413,7 +525,7 @@ export const datingApi = {
   async markMatchSeen(matchId: string): Promise<void> {
     try {
       await axiosInstance.patch(`/api/dating/matches/${matchId}/seen`);
-    } catch (error: any) {
+    } catch {
       // Silent fail for seen status
     }
   },
@@ -445,7 +557,7 @@ export const datingApi = {
     try {
       const response = await axiosInstance.get('/api/dating/likes/count');
       return response.data.count;
-    } catch (error: any) {
+    } catch {
       return 0;
     }
   },
@@ -456,7 +568,7 @@ export const datingApi = {
   async markLikeSeen(likeId: string): Promise<void> {
     try {
       await axiosInstance.patch(`/api/dating/likes/${likeId}/seen`);
-    } catch (error: any) {
+    } catch {
       // Silent fail
     }
   },
@@ -473,6 +585,12 @@ export const datingApi = {
       const response = await axiosInstance.get('/api/dating/preferences');
       return response.data;
     } catch (error: any) {
+      // Return default preferences in dev mode
+      if (USE_MOCK_FALLBACK) {
+        console.log('[DatingAPI] Using default preferences (backend unavailable)');
+        return DEFAULT_DATING_PREFERENCES;
+      }
+
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -509,6 +627,23 @@ export const datingApi = {
       const response = await axiosInstance.get('/api/dating/stats');
       return response.data;
     } catch (error: any) {
+      // Return mock stats in dev mode
+      if (USE_MOCK_FALLBACK) {
+        console.log('[DatingAPI] Using mock stats (backend unavailable)');
+        return {
+          totalLikes: 25,
+          totalPasses: 15,
+          totalSuperLikes: 3,
+          totalMatches: 5,
+          likesRemaining: FREE_DAILY_LIMITS.likes,
+          superLikesRemaining: FREE_DAILY_LIMITS.superLikes,
+          rewindsRemaining: FREE_DAILY_LIMITS.rewinds,
+          boostsRemaining: FREE_DAILY_LIMITS.boosts,
+          nextRefresh: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          isBoostActive: false,
+        };
+      }
+
       const message =
         error.response?.data?.message ||
         error.message ||
@@ -544,7 +679,7 @@ export const datingApi = {
     try {
       const response = await axiosInstance.get('/api/dating/boost/status');
       return response.data;
-    } catch (error: any) {
+    } catch {
       return null;
     }
   },
@@ -680,7 +815,7 @@ export const datingApi = {
   async markMessagesRead(matchId: string): Promise<void> {
     try {
       await axiosInstance.patch(`/api/dating/matches/${matchId}/messages/read`);
-    } catch (error: any) {
+    } catch {
       // Silent fail
     }
   },
@@ -716,7 +851,7 @@ export const datingApi = {
     try {
       const response = await axiosInstance.get('/api/dating/verify/status');
       return response.data;
-    } catch (error: any) {
+    } catch {
       return { status: 'none' };
     }
   },

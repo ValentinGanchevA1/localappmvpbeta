@@ -18,7 +18,6 @@ import {useAppDispatch, useAppSelector} from '@/store/hooks';
 import {
   fetchPreferences,
   updatePreferences,
-  setPreferences,
   selectPreferences,
 } from '@/store/slices/datingSlice';
 import {
@@ -163,7 +162,7 @@ export const DatingPreferencesScreen: React.FC = () => {
       await dispatch(updatePreferences(localPrefs)).unwrap();
       setHasChanges(false);
       Alert.alert('Saved', 'Your preferences have been updated');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to save preferences');
     }
   }, [dispatch, localPrefs]);
@@ -483,7 +482,7 @@ export const DatingPreferencesScreen: React.FC = () => {
         </Section>
 
         {/* Spacer for save button */}
-        <View style={{height: 100}} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       {/* Save Button */}
@@ -682,6 +681,9 @@ const styles = StyleSheet.create({
     color: COLORS.WHITE,
     fontSize: 16,
     fontWeight: '600',
+  },
+  bottomSpacer: {
+    height: 100,
   },
 });
 

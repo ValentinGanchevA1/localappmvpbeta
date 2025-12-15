@@ -20,7 +20,7 @@ import {
   selectBlockedUserIds,
 } from '@/store/slices/socialGraphSlice';
 import {PrivacySettingRow, PrivacySection} from '@/components/social';
-import {PrivacyLevel, PrivacySettings} from '@/types/socialGraph';
+import {PrivacySettings} from '@/types/socialGraph';
 
 const PrivacySettingsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -48,7 +48,7 @@ const PrivacySettingsScreen: React.FC = () => {
   ) => {
     try {
       await dispatch(updatePrivacySettings({[key]: value}));
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to update setting. Please try again.');
     }
   };

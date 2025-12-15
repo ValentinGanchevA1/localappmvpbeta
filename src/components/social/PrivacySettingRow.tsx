@@ -50,7 +50,7 @@ export const PrivacySettingRow: React.FC<PrivacySettingRowProps> = ({
   value,
   options,
   onToggle,
-  onSelect,
+  onSelect: _onSelect,
   onPress,
   style,
   disabled = false,
@@ -123,14 +123,15 @@ export const PrivacySettingRow: React.FC<PrivacySettingRowProps> = ({
   );
 };
 
-interface PrivacySelectModalProps {
-  visible: boolean;
-  title: string;
-  options: PrivacyOption[];
-  selectedValue: PrivacyLevel | string;
-  onSelect: (value: PrivacyLevel | string) => void;
-  onClose: () => void;
-}
+// PrivacySelectModalProps kept for future modal implementation
+// interface PrivacySelectModalProps {
+//   visible: boolean;
+//   title: string;
+//   options: PrivacyOption[];
+//   selectedValue: PrivacyLevel | string;
+//   onSelect: (value: PrivacyLevel | string) => void;
+//   onClose: () => void;
+// }
 
 export const PrivacySelectOption: React.FC<{
   option: PrivacyOption;

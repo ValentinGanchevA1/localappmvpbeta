@@ -5,7 +5,6 @@ import {createSlice, createAsyncThunk, PayloadAction} from '@reduxjs/toolkit';
 import {
   DatingProfile,
   DatingPreferences,
-  SwipeAction,
   SwipeActionType,
   Match,
   Like,
@@ -264,7 +263,7 @@ export const fetchNewMatchesCount = createAsyncThunk<number, void, {rejectValue:
   async (_, {rejectWithValue}) => {
     try {
       return await datingApi.getNewMatchesCount();
-    } catch (error) {
+    } catch {
       return rejectWithValue('Failed to fetch count');
     }
   }
@@ -333,7 +332,7 @@ export const fetchLikesCount = createAsyncThunk<number, void, {rejectValue: stri
   async (_, {rejectWithValue}) => {
     try {
       return await datingApi.getLikesCount();
-    } catch (error) {
+    } catch {
       return rejectWithValue('Failed to fetch count');
     }
   }
@@ -796,7 +795,7 @@ export const selectMyProfile = (state: RootState) => state.dating.myProfile;
 export const selectProfiles = (state: RootState) => state.dating.profiles;
 export const selectRecommendations = (state: RootState) => state.dating.recommendations;
 export const selectCurrentProfile = (state: RootState) => {
-  const {recommendations, currentIndex} = state.dating;
+  const {recommendations} = state.dating;
   return recommendations[0] ?? null;
 };
 export const selectMatches = (state: RootState) => state.dating.matches;
