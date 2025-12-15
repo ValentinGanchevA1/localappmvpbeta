@@ -16,12 +16,17 @@ export type SocialStackParamList = {
   // Add other social screens here like UserProfile, etc.
 };
 
+export type NotificationStackParamList = {
+  NotificationsList: undefined;
+  NotificationSettings: undefined;
+};
+
 export type MainTabParamList = {
   Map: undefined;
   Social: NavigatorScreenParams<SocialStackParamList>;
   Dating: undefined;
   Trading: NavigatorScreenParams<TradingStackParamList>;
-  Notifications: undefined;
+  Notifications: NavigatorScreenParams<NotificationStackParamList>;
   Profile: undefined;
 };
 

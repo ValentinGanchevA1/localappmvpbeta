@@ -6,11 +6,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {
   MapScreen,
   ProfileScreen,
-  NotificationsScreen,
 } from '@/screens/main';
 import { SwipeScreen } from '@/screens/dating/SwipeScreen';
 import SocialNavigator from './SocialNavigator';
 import TradingNavigator from './TradingNavigator';
+import NotificationNavigator from './NotificationNavigator';
 import { MainTabParamList } from '@/types/navigation';
 import { COLORS, TYPOGRAPHY } from '@/config/theme';
 
@@ -128,10 +128,10 @@ const MainTabNavigator: React.FC = () => {
 
 			<Tab.Screen
 				name="Notifications"
-				component={NotificationsScreen}
+				component={NotificationNavigator}
 				options={{
 					title: 'Notifications',
-					headerShown: true,
+					headerShown: false,
 				}}
 			/>
 

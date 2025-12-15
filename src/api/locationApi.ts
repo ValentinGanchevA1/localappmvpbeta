@@ -7,6 +7,9 @@ export interface NearbyUser {
   latitude: number;
   longitude: number;
   distance?: number;
+  avatar?: string;
+  isOnline?: boolean;
+  bio?: string;
 }
 
 interface GetNearbyUsersParams {

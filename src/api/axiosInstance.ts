@@ -49,7 +49,9 @@ const createAxiosInstance = (): AxiosInstance => {
       }
       return config;
     },
-    (error: AxiosError) => Promise.reject(error)
+    (error: AxiosError) => {
+      throw error;
+    }
   );
 
   // Response interceptor with token refresh support
@@ -76,7 +78,9 @@ const createAxiosInstance = (): AxiosInstance => {
               originalRequest.headers.Authorization = `Bearer ${token}`;
               return instance(originalRequest);
             })
-            .catch((err) => Promise.reject(err));
+            .catch((err) => {
+              throw err;
+            });
         }
 
         originalRequest._retry = true;
@@ -98,19 +102,19 @@ const createAxiosInstance = (): AxiosInstance => {
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return instance(originalRequest);
-        } catch (refreshError) {
+        } catch {
           // Token refresh failed - logout user
           processQueue(new Error('Session expired'), null);
           const { logout } = await import('@/store/slices/authSlice');
           const { store } = await import('@/store');
           store.dispatch(logout());
-          return Promise.reject(new Error('Session expired. Please login again.'));
+          throw new Error('Session expired. Please login again.');
         } finally {
           isRefreshing = false;
         }
       }
 
-      return Promise.reject(error);
+      throw error;
     }
   );
 

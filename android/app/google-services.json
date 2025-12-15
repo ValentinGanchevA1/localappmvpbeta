@@ -1,15 +1,15 @@
 {
   "project_info": {
     "project_number": "218591063506",
-    "project_id": "localappmvp",
-    "storage_bucket": "localappmvp.firebasestorage.app"
+    "project_id": "com.localappmvpbeta",
+    "storage_bucket": "com.localappmvpbeta.appspot.com"
   },
   "client": [
     {
       "client_info": {
         "mobilesdk_app_id": "1:218591063506:android:4c4ae90a21640705666c0b",
         "android_client_info": {
-          "package_name": "com.vganchev6.localappmvpbeta"
+          "package_name": "com.localappmvpbeta"
         }
       },
       "oauth_client": [],
