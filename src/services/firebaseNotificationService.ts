@@ -2,7 +2,23 @@
 // Firebase Cloud Messaging service for push notifications
 
 import { Platform } from 'react-native';
-import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import {
+  getMessaging,
+  getToken as fcmGetToken,
+  deleteToken as fcmDeleteToken,
+  onMessage,
+  onNotificationOpenedApp,
+  getInitialNotification,
+  onTokenRefresh as fcmOnTokenRefresh,
+  setBackgroundMessageHandler,
+  requestPermission as fcmRequestPermission,
+  hasPermission,
+  subscribeToTopic as fcmSubscribeToTopic,
+  unsubscribeFromTopic as fcmUnsubscribeFromTopic,
+  AuthorizationStatus,
+} from '@react-native-firebase/messaging';
+import type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { getApp } from '@react-native-firebase/app';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   NotificationPayload,
@@ -46,15 +62,17 @@ class FirebaseNotificationService {
     }
 
     try {
+      const messaging = getMessaging(getApp());
+
       // Set up foreground message handler
-      this.unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
+      this.unsubscribeForeground = onMessage(messaging, async (remoteMessage) => {
         console.log('[FirebaseNotification] Foreground message received:', remoteMessage.messageId);
         const payload = this.parseRemoteMessage(remoteMessage);
         this.notifyHandlers(payload);
       });
 
       // Set up notification opened handler (when user taps notification)
-      this.unsubscribeNotificationOpened = messaging().onNotificationOpenedApp((remoteMessage) => {
+      this.unsubscribeNotificationOpened = onNotificationOpenedApp(messaging, (remoteMessage) => {
         console.log('[FirebaseNotification] Notification opened app:', remoteMessage.messageId);
         const payload = this.parseRemoteMessage(remoteMessage);
         payload.data = { ...payload.data, openedFromNotification: true };
@@ -62,7 +80,7 @@ class FirebaseNotificationService {
       });
 
       // Check if app was opened from a notification (cold start)
-      const initialNotification = await messaging().getInitialNotification();
+      const initialNotification = await getInitialNotification(messaging);
       if (initialNotification) {
         console.log('[FirebaseNotification] App opened from notification (cold start)');
         const payload = this.parseRemoteMessage(initialNotification);
@@ -72,7 +90,7 @@ class FirebaseNotificationService {
       }
 
       // Set up token refresh handler
-      this.unsubscribeTokenRefresh = messaging().onTokenRefresh((token) => {
+      this.unsubscribeTokenRefresh = fcmOnTokenRefresh(messaging, (token) => {
         console.log('[FirebaseNotification] Token refreshed');
         this.saveTokenInfo(token);
         this.tokenRefreshHandlers.forEach((handler) => handler(token));
@@ -101,7 +119,8 @@ class FirebaseNotificationService {
       // We just log them here; actual handling happens when user taps
     };
 
-    messaging().setBackgroundMessageHandler(this.backgroundMessageHandler);
+    const messaging = getMessaging(getApp());
+    setBackgroundMessageHandler(messaging, this.backgroundMessageHandler);
   }
 
   /**
@@ -109,7 +128,8 @@ class FirebaseNotificationService {
    */
   async requestPermission(): Promise<PermissionStatus> {
     try {
-      const authStatus = await messaging().requestPermission();
+      const messaging = getMessaging(getApp());
+      const authStatus = await fcmRequestPermission(messaging);
       return this.mapAuthStatus(authStatus);
     } catch (error) {
       console.error('[FirebaseNotification] Permission request error:', error);
@@ -122,7 +142,8 @@ class FirebaseNotificationService {
    */
   async checkPermission(): Promise<PermissionStatus> {
     try {
-      const authStatus = await messaging().hasPermission();
+      const messaging = getMessaging(getApp());
+      const authStatus = await hasPermission(messaging);
       return this.mapAuthStatus(authStatus);
     } catch (error) {
       console.error('[FirebaseNotification] Permission check error:', error);
@@ -135,12 +156,12 @@ class FirebaseNotificationService {
    */
   private mapAuthStatus(authStatus: FirebaseMessagingTypes.AuthorizationStatus): PermissionStatus {
     switch (authStatus) {
-      case messaging.AuthorizationStatus.AUTHORIZED:
-      case messaging.AuthorizationStatus.PROVISIONAL:
+      case AuthorizationStatus.AUTHORIZED:
+      case AuthorizationStatus.PROVISIONAL:
         return 'granted';
-      case messaging.AuthorizationStatus.DENIED:
+      case AuthorizationStatus.DENIED:
         return 'denied';
-      case messaging.AuthorizationStatus.NOT_DETERMINED:
+      case AuthorizationStatus.NOT_DETERMINED:
       default:
         return 'not_determined';
     }
@@ -151,7 +172,8 @@ class FirebaseNotificationService {
    */
   async getToken(): Promise<string | null> {
     try {
-      const token = await messaging().getToken();
+      const messaging = getMessaging(getApp());
+      const token = await fcmGetToken(messaging);
       if (token) {
         await this.saveTokenInfo(token);
       }
@@ -191,7 +213,8 @@ class FirebaseNotificationService {
    */
   async deleteToken(): Promise<void> {
     try {
-      await messaging().deleteToken();
+      const messaging = getMessaging(getApp());
+      await fcmDeleteToken(messaging);
       await AsyncStorage.removeItem(FCM_TOKEN_KEY);
       console.log('[FirebaseNotification] Token deleted');
     } catch (error) {
@@ -261,7 +284,8 @@ class FirebaseNotificationService {
    */
   async subscribeToTopic(topic: string): Promise<void> {
     try {
-      await messaging().subscribeToTopic(topic);
+      const messaging = getMessaging(getApp());
+      await fcmSubscribeToTopic(messaging, topic);
       console.log(`[FirebaseNotification] Subscribed to topic: ${topic}`);
     } catch (error) {
       console.error(`[FirebaseNotification] Subscribe to topic error:`, error);
@@ -273,7 +297,8 @@ class FirebaseNotificationService {
    */
   async unsubscribeFromTopic(topic: string): Promise<void> {
     try {
-      await messaging().unsubscribeFromTopic(topic);
+      const messaging = getMessaging(getApp());
+      await fcmUnsubscribeFromTopic(messaging, topic);
       console.log(`[FirebaseNotification] Unsubscribed from topic: ${topic}`);
     } catch (error) {
       console.error(`[FirebaseNotification] Unsubscribe from topic error:`, error);

@@ -3,7 +3,11 @@
     "allow": [
       "Bash(yarn lint:*)",
       "Bash(npx tsc:*)",
-      "Bash(yarn test)"
+      "Bash(yarn test)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(npm start)",
+      "Bash(npm install:*)"
     ]
   }
 }

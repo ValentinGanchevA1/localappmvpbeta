@@ -12,8 +12,48 @@ export type AuthStackParamList = {
 };
 
 export type SocialStackParamList = {
-  Chat: { userId: string; username: string };
-  // Add other social screens here like UserProfile, etc.
+  // Main Social Tabs
+  SocialHome: undefined;
+  FriendsList: undefined;
+  FriendRequests: undefined;
+  FriendDiscovery: undefined;
+  Groups: undefined;
+  SocialCircles: undefined;
+  PrivacySettings: undefined;
+
+  // Chat
+  Chat: {userId: string; username: string};
+
+  // User Profile
+  UserProfile: {userId: string};
+
+  // Group Details
+  GroupDetail: {groupId: string};
+  CreateGroup: undefined;
+  EditGroup: {groupId: string};
+  GroupInvites: undefined;
+  DiscoverGroups: undefined;
+
+  // Circle Details
+  CircleDetail: {circleId: string};
+  CreateCircle: undefined;
+  EditCircle: {circleId: string};
+
+  // Privacy Sub-screens
+  PrivacyLevelSelect: {
+    settingKey: string;
+    currentValue: string;
+    title: string;
+  };
+  LocationPrecisionSelect: undefined;
+  LocationCircles: undefined;
+  BlockedUsers: undefined;
+  RestrictedUsers: undefined;
+  HiddenFromUsers: undefined;
+  CirclePrivacyOverrides: undefined;
+
+  // Discovery
+  DiscoveryPreferences: undefined;
 };
 
 export type NotificationStackParamList = {
