@@ -1,7 +1,7 @@
 // src/services/firebaseNotificationService.ts
 // Firebase Cloud Messaging service for push notifications
 
-import { Platform, AppState, AppStateStatus } from 'react-native';
+import { Platform } from 'react-native';
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {

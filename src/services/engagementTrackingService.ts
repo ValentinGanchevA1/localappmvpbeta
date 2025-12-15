@@ -17,7 +17,6 @@ import {
 import { EngagementEvent, EngagementEventType, UserEngagementProfile } from '@/types/notifications';
 
 const ENGAGEMENT_EVENTS_KEY = 'engagement_events';
-const ENGAGEMENT_PROFILE_KEY = 'engagement_profile';
 
 class EngagementTrackingService {
   private static instance: EngagementTrackingService;

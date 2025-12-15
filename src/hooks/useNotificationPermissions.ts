@@ -11,7 +11,6 @@ import { firebaseNotificationService } from '@/services/firebaseNotificationServ
 import {
   checkNotificationPermission,
   requestNotificationPermission,
-  ensureNotificationPermission,
   showEnableNotificationsAlert,
   showPermissionRationale,
   shouldShowPermissionRationale,
@@ -45,7 +44,24 @@ export function useNotificationPermissions(): UseNotificationPermissionsReturn {
   // Check permission on mount
   useEffect(() => {
     checkPermission();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /**
+   * Refresh FCM token
+   */
+  const refreshToken = useCallback(async (): Promise<string | null> => {
+    try {
+      const token = await firebaseNotificationService.getToken();
+      if (token) {
+        dispatch(setFcmToken(token));
+      }
+      return token;
+    } catch (error) {
+      console.error('[useNotificationPermissions] Token refresh error:', error);
+      return null;
+    }
+  }, [dispatch]);
 
   /**
    * Check current permission status
@@ -68,7 +84,22 @@ export function useNotificationPermissions(): UseNotificationPermissionsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [dispatch, fcmToken]);
+  }, [dispatch, fcmToken, refreshToken]);
+
+  /**
+   * Perform the actual permission request
+   */
+  const performPermissionRequest = useCallback(async (): Promise<boolean> => {
+    const status = await requestNotificationPermission();
+    dispatch(setPermissionStatus(status));
+
+    if (status === 'granted') {
+      await refreshToken();
+      return true;
+    }
+
+    return false;
+  }, [dispatch, refreshToken]);
 
   /**
    * Request notification permission
@@ -93,38 +124,7 @@ export function useNotificationPermissions(): UseNotificationPermissionsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  /**
-   * Perform the actual permission request
-   */
-  const performPermissionRequest = async (): Promise<boolean> => {
-    const status = await requestNotificationPermission();
-    dispatch(setPermissionStatus(status));
-
-    if (status === 'granted') {
-      await refreshToken();
-      return true;
-    }
-
-    return false;
-  };
-
-  /**
-   * Refresh FCM token
-   */
-  const refreshToken = useCallback(async (): Promise<string | null> => {
-    try {
-      const token = await firebaseNotificationService.getToken();
-      if (token) {
-        dispatch(setFcmToken(token));
-      }
-      return token;
-    } catch (error) {
-      console.error('[useNotificationPermissions] Token refresh error:', error);
-      return null;
-    }
-  }, [dispatch]);
+  }, [performPermissionRequest]);
 
   /**
    * Open app settings

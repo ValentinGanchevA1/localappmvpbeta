@@ -1,5 +1,5 @@
 import axiosInstance from '@/api/axiosInstance';
-import { LoginCredentials, RegisterCredentials, getErrorMessage, isAxiosError } from '@/types';
+import { LoginCredentials, RegisterCredentials, getErrorMessage } from '@/types';
 import { User } from '@/types/user';
 
 export interface AuthResponse {

@@ -11,7 +11,6 @@ import {
   NotificationPayload,
   ScheduledNotification,
   NotificationPriority,
-  NotificationType,
   DeliveryStats,
   RateLimitConfig,
   DEFAULT_RATE_LIMIT,

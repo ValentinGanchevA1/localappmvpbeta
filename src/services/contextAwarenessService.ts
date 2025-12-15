@@ -1,7 +1,7 @@
 // src/services/contextAwarenessService.ts
 // Service for gathering context about the user's current state
 
-import { AppState, AppStateStatus, Platform } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { store } from '@/store/store';
@@ -250,7 +250,7 @@ class ContextAwarenessService {
 
     // Convert clusters to patterns
     this.locationPatterns = [];
-    for (const [key, visits] of clusters) {
+    for (const [_key, visits] of clusters) {
       if (visits.length >= MIN_VISITS_FOR_PATTERN) {
         const avgLat = visits.reduce((sum, v) => sum + v.latitude, 0) / visits.length;
         const avgLong = visits.reduce((sum, v) => sum + v.longitude, 0) / visits.length;

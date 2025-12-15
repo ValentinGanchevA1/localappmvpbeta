@@ -1,5 +1,5 @@
 // src/services/errorHandler.ts
-import { isAxiosError, getErrorMessage, AppError } from '@/types/error';
+import { isAxiosError, getErrorMessage } from '@/types/error';
 
 export enum ErrorCodes {
   NETWORK_ERROR = 'NETWORK_ERROR',

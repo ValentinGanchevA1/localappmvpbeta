@@ -51,13 +51,49 @@ function formatRelativeTime(dateString: string): string {
   return date.toLocaleDateString();
 }
 
+// Header component - moved outside to avoid re-creation on each render
+interface ListHeaderProps {
+  unreadCount: number;
+  onMarkAllAsRead: () => void;
+  onSettingsPress: () => void;
+}
+
+const ListHeader: React.FC<ListHeaderProps> = ({ unreadCount, onMarkAllAsRead, onSettingsPress }) => (
+  <View style={styles.headerContainer}>
+    <View style={styles.headerLeft}>
+      <Text style={styles.headerTitle}>Notifications</Text>
+      {unreadCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{unreadCount}</Text>
+        </View>
+      )}
+    </View>
+    <View style={styles.headerActions}>
+      {unreadCount > 0 && (
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={onMarkAllAsRead}
+        >
+          <Text style={styles.headerButtonText}>Mark all read</Text>
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity
+        style={styles.settingsButton}
+        onPress={onSettingsPress}
+      >
+        <Icon name="settings-outline" size={24} color={COLORS.PRIMARY} />
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
 export const NotificationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
   const notifications = useAppSelector(selectNotifications);
   const unreadCount = useAppSelector(selectUnreadCount);
   const loading = useAppSelector(selectNotificationsLoading);
-  const { trackScreenView } = useEngagementTracking('Notifications');
+  useEngagementTracking('Notifications');
 
   // Fetch notifications on mount
   useEffect(() => {
@@ -146,39 +182,13 @@ export const NotificationsScreen: React.FC = () => {
     );
   };
 
-  // Header component with settings and mark all as read
-  const ListHeader = () => (
-    <View style={styles.headerContainer}>
-      <View style={styles.headerLeft}>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        {unreadCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{unreadCount}</Text>
-          </View>
-        )}
-      </View>
-      <View style={styles.headerActions}>
-        {unreadCount > 0 && (
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleMarkAllAsRead}
-          >
-            <Text style={styles.headerButtonText}>Mark all read</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={handleSettingsPress}
-        >
-          <Icon name="settings-outline" size={24} color={COLORS.PRIMARY} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
-      <ListHeader />
+      <ListHeader
+        unreadCount={unreadCount}
+        onMarkAllAsRead={handleMarkAllAsRead}
+        onSettingsPress={handleSettingsPress}
+      />
       {loading && notifications.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.PRIMARY} />

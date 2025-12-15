@@ -51,8 +51,8 @@ const FREQUENCY_OPTIONS: { value: FrequencyPreference; label: string; descriptio
 export const NotificationSettingsScreen: React.FC = () => {
   const dispatch = useAppDispatch();
   const settings = useAppSelector((state) => state.notificationSettings?.settings);
-  const { permissionStatus, isGranted, requestPermission, openSettings } = useNotificationPermissions();
-  const { trackScreenView, getInsights } = useEngagementTracking('NotificationSettings');
+  const { isGranted, requestPermission, openSettings } = useNotificationPermissions();
+  const { getInsights } = useEngagementTracking('NotificationSettings');
 
   const [showTimePicker, setShowTimePicker] = useState<TimePickerMode>(null);
   const [insights, setInsights] = useState<ReturnType<typeof getInsights> | null>(null);

@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Platform,
   Image,
-  Dimensions,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { useLocation } from '@/hooks/useLocation';
@@ -26,8 +25,6 @@ const DEFAULT_LOCATION = {
   latitudeDelta: 0.0922,
   longitudeDelta: 0.0421,
 };
-
-const { width } = Dimensions.get('window');
 
 const MapScreen: React.FC = () => {
   const dispatch = useAppDispatch();

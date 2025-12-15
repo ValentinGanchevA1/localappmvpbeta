@@ -10,7 +10,6 @@ import {
   FrequencyPreference,
   QuietHoursConfig,
   DEFAULT_NOTIFICATION_SETTINGS,
-  FCMTokenInfo,
 } from '@/types/notifications';
 
 const NOTIFICATION_SETTINGS_KEY = 'notification_settings';
