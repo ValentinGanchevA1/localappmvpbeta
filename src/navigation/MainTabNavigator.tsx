@@ -11,6 +11,7 @@ import SocialNavigator from './SocialNavigator';
 import TradingNavigator from './TradingNavigator';
 import NotificationNavigator from './NotificationNavigator';
 import DatingNavigator from './DatingNavigator';
+import LocalTrendsNavigator from './LocalTrendsNavigator';
 import { MainTabParamList } from '@/types/navigation';
 import { COLORS, TYPOGRAPHY } from '@/config/theme';
 
@@ -28,6 +29,9 @@ const getTabBarIcon = (
 	switch (routeName) {
 		case 'Map':
 			iconName = focused ? 'map' : 'map-outline';
+			break;
+		case 'Trends':
+			iconName = focused ? 'trending-up' : 'trending-up-outline';
 			break;
     case 'Social':
       iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
@@ -95,6 +99,15 @@ const MainTabNavigator: React.FC = () => {
 				options={{
 					title: 'Map',
 					headerShown: false, // Map has its own header
+				}}
+			/>
+
+			<Tab.Screen
+				name="Trends"
+				component={LocalTrendsNavigator}
+				options={{
+					title: 'Trends',
+					headerShown: false,
 				}}
 			/>
 

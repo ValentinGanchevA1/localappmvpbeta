@@ -16,3 +16,18 @@ export { fetchNearbyData, setCurrentLocation, setLocationTracking, setLocationEr
 export { default as locationReducer } from './slices/locationSlice';
 
 export { default as themeReducer } from './slices/themeSlice';
+
+// Local Trends exports
+export {
+  fetchTrends,
+  fetchTrendDetail,
+  fetchInsights,
+  fetchTrendNotifications,
+  likeTrend,
+  unlikeTrend,
+  setFilter,
+  selectTrends,
+  selectInsights,
+  selectTrendNotifications,
+} from './slices/localTrendsSlice';
+export { default as localTrendsReducer } from './slices/localTrendsSlice';

@@ -14,13 +14,14 @@ import notificationsReducer from './slices/notificationsSlice';
 import engagementReducer from './slices/engagementSlice';
 import notificationSettingsReducer from './slices/notificationSettingsSlice';
 import socialGraphReducer from './slices/socialGraphSlice';
+import localTrendsReducer from './slices/localTrendsSlice';
 
 // Whitelist specific slices to persist (don't persist everything)
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
   whitelist: ['auth', 'theme', 'user', 'engagement', 'notificationSettings', 'socialGraph'], // ✅ Persist essential data + notification settings + social graph
-  blacklist: ['location', 'dating', 'trading', 'task', 'notifications'], // ❌ Don't persist real-time data
+  blacklist: ['location', 'dating', 'trading', 'task', 'notifications', 'localTrends'], // ❌ Don't persist real-time data
   version: 1,
 };
 
@@ -36,6 +37,7 @@ const rootReducer = combineReducers({
   engagement: engagementReducer,
   notificationSettings: notificationSettingsReducer,
   socialGraph: socialGraphReducer,
+  localTrends: localTrendsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
