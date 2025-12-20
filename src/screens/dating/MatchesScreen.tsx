@@ -15,20 +15,21 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {useAppDispatch, useAppSelector} from '@/store/hooks';
 import {
   fetchMatches,
   fetchLikes,
   fetchLikesCount,
   unmatchUser,
-  archiveMatch,
-  selectMatches,
   selectActiveMatches,
   selectArchivedMatches,
   selectLikes,
   selectLikesCount,
 } from '@/store/slices/datingSlice';
 import {Match, Like, DatingProfile} from '@/types/dating';
+import {DatingStackParamList} from '@/navigation/DatingNavigator';
 import {COLORS, SPACING, TYPOGRAPHY} from '@/config/theme';
 
 // ============================================
@@ -36,6 +37,11 @@ import {COLORS, SPACING, TYPOGRAPHY} from '@/config/theme';
 // ============================================
 
 type TabType = 'matches' | 'likes';
+
+type MatchesScreenNavigationProp = NativeStackNavigationProp<
+  DatingStackParamList,
+  'Matches'
+>;
 
 interface MatchCardProps {
   match: Match;
@@ -109,7 +115,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             {otherProfile.name}, {otherProfile.age}
           </Text>
           {match.matchedVia === 'super_like' && (
-            <Text style={styles.superLikeIcon}>*</Text>
+            <Icon name="star" size={14} color="#339AF0" />
           )}
         </View>
 
@@ -152,7 +158,7 @@ const MatchCard: React.FC<MatchCardProps> = ({
             ]
           );
         }}>
-        <Text style={styles.menuIcon}>...</Text>
+        <Icon name="ellipsis-horizontal" size={20} color={COLORS.GRAY_400} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -179,7 +185,7 @@ const LikeCard: React.FC<LikeCardProps> = ({like, onLike, onPass}) => {
 
       {like.isSuperLike && (
         <View style={styles.superLikeBadge}>
-          <Text style={styles.superLikeBadgeText}>*</Text>
+          <Icon name="star" size={12} color={COLORS.WHITE} />
         </View>
       )}
 
@@ -190,10 +196,10 @@ const LikeCard: React.FC<LikeCardProps> = ({like, onLike, onPass}) => {
 
         <View style={styles.likeActions}>
           <TouchableOpacity style={styles.passBtn} onPress={onPass}>
-            <Text style={styles.passBtnText}>X</Text>
+            <Icon name="close" size={20} color="#FF6B6B" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.likeBtn} onPress={onLike}>
-            <Text style={styles.likeBtnText}>heart</Text>
+            <Icon name="heart" size={18} color={COLORS.WHITE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -206,7 +212,7 @@ const LikeCard: React.FC<LikeCardProps> = ({like, onLike, onPass}) => {
 // ============================================
 
 export const MatchesScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<MatchesScreenNavigationProp>();
   const dispatch = useAppDispatch();
 
   // State
@@ -215,7 +221,8 @@ export const MatchesScreen: React.FC = () => {
 
   // Selectors
   const matches = useAppSelector(selectActiveMatches);
-  const archivedMatches = useAppSelector(selectArchivedMatches);
+  // archivedMatches kept for future use
+  useAppSelector(selectArchivedMatches);
   const likes = useAppSelector(selectLikes);
   const likesCount = useAppSelector(selectLikesCount);
   const {matchesLoading, likesLoading} = useAppSelector(state => state.dating);
@@ -249,7 +256,7 @@ export const MatchesScreen: React.FC = () => {
 
   // Handle like back
   const handleLikeBack = useCallback(
-    (userId: string) => {
+    (_userId: string) => {
       // This would trigger a swipe action that creates a match
       Alert.alert('Liked!', 'Match created!');
       dispatch(fetchMatches());
@@ -258,7 +265,7 @@ export const MatchesScreen: React.FC = () => {
   );
 
   // Handle pass on like
-  const handlePassLike = useCallback((userId: string) => {
+  const handlePassLike = useCallback((_userId: string) => {
     Alert.alert('Passed', 'They wont know you passed');
     // Remove from likes locally
   }, []);
@@ -269,8 +276,7 @@ export const MatchesScreen: React.FC = () => {
       const otherProfile =
         match.user1Id === currentUserId ? match.user2Profile : match.user1Profile;
 
-      // @ts-ignore - navigation typing
-      navigation.navigate('Chat', {
+      navigation.navigate('DatingChat', {
         matchId: match.id,
         userId: otherProfile.userId,
         username: otherProfile.name,
@@ -307,7 +313,7 @@ export const MatchesScreen: React.FC = () => {
   // Empty states
   const renderEmptyMatches = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>heart</Text>
+      <Icon name="heart-outline" size={64} color={COLORS.GRAY_300} />
       <Text style={styles.emptyTitle}>No matches yet</Text>
       <Text style={styles.emptySubtitle}>
         Keep swiping to find your match!
@@ -322,7 +328,7 @@ export const MatchesScreen: React.FC = () => {
 
   const renderEmptyLikes = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>*</Text>
+      <Icon name="star-outline" size={64} color={COLORS.GRAY_300} />
       <Text style={styles.emptyTitle}>No likes yet</Text>
       <Text style={styles.emptySubtitle}>
         When someone likes you, they will appear here
@@ -334,7 +340,13 @@ export const MatchesScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="chevron-back" size={28} color={COLORS.TEXT_PRIMARY} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Messages</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Tabs */}
@@ -419,14 +431,24 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.WHITE,
   },
   header: {
-    paddingHorizontal: SPACING.LG,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.SM,
     paddingVertical: SPACING.MD,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.GRAY_200,
   },
+  backButton: {
+    padding: 4,
+  },
   headerTitle: {
-    ...TYPOGRAPHY.H1,
+    ...TYPOGRAPHY.H2,
     color: COLORS.GRAY_900,
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 36,
   },
 
   // Tabs
@@ -642,11 +664,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.XL,
     paddingTop: 100,
   },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: SPACING.MD,
-  },
   emptyTitle: {
+    marginTop: SPACING.MD,
     ...TYPOGRAPHY.H2,
     color: COLORS.GRAY_900,
     marginBottom: SPACING.SM,

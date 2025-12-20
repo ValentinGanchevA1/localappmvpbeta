@@ -180,16 +180,28 @@ const MapScreen: React.FC = () => {
       {selectedUser && (
         <View style={styles.userCard}>
           <View style={styles.cardHeader}>
-            <Image 
-              source={{ uri: selectedUser.avatar || `https://ui-avatars.com/api/?name=${selectedUser.name}&background=random` }} 
-              style={styles.cardAvatar} 
+            <Image
+              source={{ uri: selectedUser.avatar || `https://ui-avatars.com/api/?name=${selectedUser.name}&background=random` }}
+              style={styles.cardAvatar}
             />
             <View style={styles.cardInfo}>
-              <Text style={styles.cardName}>{selectedUser.name}</Text>
+              <View style={styles.cardNameRow}>
+                <Text style={styles.cardName}>{selectedUser.name}{selectedUser.age ? `, ${selectedUser.age}` : ''}</Text>
+                {selectedUser.isOnline && <View style={styles.cardOnlineDot} />}
+              </View>
               <Text style={styles.cardDistance}>
-                {selectedUser.distance ? `${Math.round(selectedUser.distance)}m away` : 'Nearby'} • {selectedUser.isOnline ? 'Online' : 'Offline'}
+                {selectedUser.distance ? `${selectedUser.distance < 1 ? Math.round(selectedUser.distance * 1000) + 'm' : selectedUser.distance.toFixed(1) + 'km'} away` : 'Nearby'}
               </Text>
-              {selectedUser.bio && <Text style={styles.cardBio} numberOfLines={1}>{selectedUser.bio}</Text>}
+              {selectedUser.bio && <Text style={styles.cardBio} numberOfLines={2}>{selectedUser.bio}</Text>}
+              {selectedUser.interests && selectedUser.interests.length > 0 && (
+                <View style={styles.cardInterests}>
+                  {selectedUser.interests.slice(0, 3).map((interest: string, idx: number) => (
+                    <View key={idx} style={styles.cardInterestChip}>
+                      <Text style={styles.cardInterestText}>{interest}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
             <TouchableOpacity onPress={() => setSelectedUser(null)} style={styles.closeButton}>
               <Icon name="close" size={20} color={COLORS.TEXT_MUTED} />
@@ -198,15 +210,15 @@ const MapScreen: React.FC = () => {
           
           <View style={styles.actionButtons}>
             <TouchableOpacity style={[styles.actionBtn, styles.chatBtn]} onPress={() => navigation.navigate('Social', { screen: 'Chat', params: { userId: selectedUser.id, username: selectedUser.name } })}>
-              <Icon name="chatbubble-ellipses" size={20} color={COLORS.WHITE} />
+              <Icon name="chatbubble-ellipses" size={18} color={COLORS.WHITE} />
               <Text style={styles.actionBtnText}>Chat</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionBtn, styles.tradeBtn]} onPress={() => navigation.navigate('Trading', { screen: 'CreateTrade', params: { recipientId: selectedUser.id } })}>
-              <Icon name="swap-horizontal" size={20} color={COLORS.PRIMARY} />
-              <Text style={[styles.actionBtnText, styles.tradeBtnText]}>Trade</Text>
+            <TouchableOpacity style={[styles.actionBtn, styles.datingBtn]} onPress={() => navigation.navigate('Dating', { screen: 'ProfileDetail', params: { profile: { ...selectedUser, userId: selectedUser.id, photos: [selectedUser.avatar], compatibilityScore: Math.floor(Math.random() * 20) + 75 } } })}>
+              <Icon name="heart" size={18} color={COLORS.WHITE} />
+              <Text style={styles.actionBtnText}>Dating</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionBtn, styles.profileBtn]} onPress={() => navigation.navigate('Social', { screen: 'UserProfile', params: { userId: selectedUser.id } } as any)}>
-              <Icon name="person" size={20} color={COLORS.TEXT_PRIMARY} />
+              <Icon name="person" size={18} color={COLORS.TEXT_PRIMARY} />
               <Text style={[styles.actionBtnText, styles.profileBtnText]}>Profile</Text>
             </TouchableOpacity>
           </View>
@@ -378,12 +390,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.MD },
-  cardAvatar: { width: 50, height: 50, borderRadius: 25, marginRight: SPACING.MD },
+  cardHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: SPACING.MD },
+  cardAvatar: { width: 60, height: 60, borderRadius: 30, marginRight: SPACING.MD },
   cardInfo: { flex: 1 },
+  cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardName: { ...TYPOGRAPHY.H3, color: COLORS.TEXT_PRIMARY },
+  cardOnlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.SUCCESS },
   cardDistance: { ...TYPOGRAPHY.CAPTION, color: COLORS.TEXT_MUTED, marginTop: 2 },
-  cardBio: { ...TYPOGRAPHY.BODY, fontSize: 14, color: COLORS.TEXT_SECONDARY, marginTop: 4 },
+  cardBio: { ...TYPOGRAPHY.BODY, fontSize: 13, color: COLORS.TEXT_SECONDARY, marginTop: 6, lineHeight: 18 },
+  cardInterests: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  cardInterestChip: { backgroundColor: COLORS.GRAY_100, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
+  cardInterestText: { fontSize: 11, color: COLORS.TEXT_SECONDARY },
   closeButton: { padding: 4 },
   actionButtons: { flexDirection: 'row', gap: SPACING.SM },
   actionBtn: {
@@ -395,10 +412,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   chatBtn: { backgroundColor: COLORS.PRIMARY },
-  tradeBtn: { backgroundColor: '#F0F0F0', borderWidth: 1, borderColor: '#E0E0E0' },
+  datingBtn: { backgroundColor: '#FF6B6B' },
   profileBtn: { backgroundColor: '#F0F0F0', borderWidth: 1, borderColor: '#E0E0E0' },
-  actionBtnText: { ...TYPOGRAPHY.BUTTON, color: COLORS.WHITE, marginLeft: 6 },
-  tradeBtnText: { color: COLORS.PRIMARY },
+  actionBtnText: { ...TYPOGRAPHY.BUTTON, color: COLORS.WHITE, marginLeft: 6, fontSize: 13 },
   profileBtnText: { color: COLORS.TEXT_PRIMARY },
 });
 

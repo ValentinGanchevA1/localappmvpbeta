@@ -7,6 +7,7 @@ import {SwipeScreen} from '@/screens/dating/SwipeScreen';
 import {MatchesScreen} from '@/screens/dating/MatchesScreen';
 import {DatingPreferencesScreen} from '@/screens/dating/DatingPreferencesScreen';
 import {ProfileDetailScreen} from '@/screens/dating/ProfileDetailScreen';
+import {DatingChatScreen} from '@/screens/dating/DatingChatScreen';
 import {DatingProfile} from '@/types/dating';
 import {COLORS} from '@/config/theme';
 
@@ -75,6 +76,15 @@ const DatingNavigator: React.FC = () => {
           headerShown: false,
           animation: 'slide_from_bottom',
           presentation: 'modal',
+        }}
+      />
+
+      {/* Chat Screen */}
+      <Stack.Screen
+        name="DatingChat"
+        component={DatingChatScreen}
+        options={{
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

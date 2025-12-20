@@ -18,7 +18,7 @@ import {
   DEFAULT_DATING_PREFERENCES,
   FREE_DAILY_LIMITS,
 } from '@/types/dating';
-import {MOCK_DATING_PROFILES, getMockDatingProfiles} from '@/data/mockDatingProfiles';
+import {getMockDatingProfiles, ALL_MOCK_PROFILES} from '@/data/mockDatingProfiles';
 
 // Flag to enable mock data when backend is unavailable
 const USE_MOCK_FALLBACK = __DEV__;
@@ -332,7 +332,7 @@ export const datingApi = {
         const isMatch =
           params.action !== 'pass' && Math.random() < 0.3;
 
-        const targetProfile = MOCK_DATING_PROFILES.find(p => p.userId === params.targetUserId);
+        const targetProfile = ALL_MOCK_PROFILES.find(p => p.userId === params.targetUserId);
 
         let match: Match | null = null;
         if (isMatch && targetProfile) {

@@ -47,7 +47,6 @@ const SUPER_LIKE_THRESHOLD = -100; // Swipe up
 interface PhotoCarouselProps {
   photos: DatingPhoto[] | string[];
   currentIndex: number;
-  onIndexChange: (index: number) => void;
   onTapLeft: () => void;
   onTapRight: () => void;
 }
@@ -333,7 +332,6 @@ export const SwipeCard: React.FC<SwipeCardProps> = ({
       <PhotoCarousel
         photos={photos}
         currentIndex={currentPhotoIndex}
-        onIndexChange={setCurrentPhotoIndex}
         onTapLeft={handleTapLeft}
         onTapRight={handleTapRight}
       />

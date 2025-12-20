@@ -648,13 +648,116 @@ export const MOCK_DATING_PROFILES: DatingProfile[] = [
   },
 ];
 
+// Additional mock profiles for more variety
+export const ADDITIONAL_MOCK_PROFILES: DatingProfile[] = [
+  {
+    id: 'dating-11',
+    userId: 'user-dating-11',
+    name: 'Natalie',
+    age: 27,
+    gender: 'female',
+    lookingFor: 'male',
+    relationshipGoal: 'long_term',
+    interests: ['Dancing', 'Salsa', 'Travel', 'Wine', 'Languages', 'Culture'],
+    bio: "Salsa dancer and language enthusiast. I speak 4 languages and I'm always learning more. Let's dance our way through life! 💃",
+    prompts: [
+      {id: 'p1', question: "My biggest risk was...", answer: "Moving to a new country alone. Best decision I ever made."},
+      {id: 'p2', question: "I'm convinced that...", answer: "Everyone should learn to dance. It's the universal language."},
+    ],
+    photos: [
+      'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop',
+    ],
+    location: {...generateNearbyCoords(SF_BASE.lat, SF_BASE.lng, 8), city: 'San Francisco', country: 'USA'},
+    basics: {height: 163, bodyType: 'athletic', ethnicity: 'Hispanic', languages: ['English', 'Spanish', 'Portuguese', 'French']},
+    lifestyle: {drinking: 'socially', smoking: 'never', exercise: 'often', diet: 'omnivore', pets: 'love_them', children: 'want_someday'},
+    work: {jobTitle: 'International Marketing', company: 'Global Tech', education: 'masters', school: 'NYU'},
+    zodiacSign: 'gemini',
+    datingPreferences: {ageRange: {min: 26, max: 36}, maxDistance: 50, genderPreference: 'male', relationshipGoals: ['long_term'], showOnlyVerified: false, showOnlyWithBio: true, showOnlyWithPhotos: true, showOnlyActive: false, prioritizeSharedInterests: true, hideAge: false, hideDistance: false, incognitoMode: false},
+    verificationStatus: 'verified',
+    isActive: true,
+    lastActive: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+    distance: 5,
+    compatibilityScore: 91,
+  },
+  {
+    id: 'dating-12',
+    userId: 'user-dating-12',
+    name: 'Tyler',
+    age: 29,
+    gender: 'male',
+    lookingFor: 'female',
+    relationshipGoal: 'long_term',
+    interests: ['Climbing', 'Outdoor', 'Photography', 'Camping', 'Adventure', 'Dogs'],
+    bio: "Rock climber and adventure seeker. My dog Bruno and I are looking for someone to join our weekend expeditions. 🏔️",
+    prompts: [
+      {id: 'p1', question: "The way to win me over is...", answer: "Be genuinely curious about the world and willing to get a little muddy."},
+      {id: 'p2', question: "My ideal Sunday is...", answer: "Early morning hike, afternoon at a dog park, evening cooking together."},
+    ],
+    photos: [
+      'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1528892952291-009c663ce843?w=400&h=600&fit=crop',
+    ],
+    location: {...generateNearbyCoords(SF_BASE.lat, SF_BASE.lng, 6), city: 'San Francisco', country: 'USA'},
+    basics: {height: 185, bodyType: 'athletic', ethnicity: 'Caucasian', languages: ['English']},
+    lifestyle: {drinking: 'socially', smoking: 'never', exercise: 'daily', diet: 'omnivore', pets: 'have_pets', children: 'want_someday'},
+    work: {jobTitle: 'Product Manager', company: 'Outdoor Startup', education: 'bachelors', school: 'University of Colorado'},
+    zodiacSign: 'taurus',
+    datingPreferences: {ageRange: {min: 24, max: 32}, maxDistance: 40, genderPreference: 'female', relationshipGoals: ['long_term'], showOnlyVerified: false, showOnlyWithBio: true, showOnlyWithPhotos: true, showOnlyActive: false, prioritizeSharedInterests: true, hideAge: false, hideDistance: false, incognitoMode: false},
+    verificationStatus: 'verified',
+    isActive: true,
+    lastActive: new Date().toISOString(),
+    createdAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+    distance: 4,
+    compatibilityScore: 86,
+  },
+  {
+    id: 'dating-13',
+    userId: 'user-dating-13',
+    name: 'Priya',
+    age: 26,
+    gender: 'female',
+    lookingFor: 'male',
+    relationshipGoal: 'long_term',
+    interests: ['Reading', 'Writing', 'Coffee', 'Philosophy', 'Yoga', 'Meditation'],
+    bio: "Writer and eternal optimist. I believe in deep conversations, morning yoga, and finding beauty in everyday moments. ✨",
+    prompts: [
+      {id: 'p1', question: "A book I think everyone should read...", answer: "The Alchemist. It changed how I view my journey in life."},
+      {id: 'p2', question: "My happy place is...", answer: "A quiet corner in a bookstore with a warm cup of chai."},
+    ],
+    photos: [
+      'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop',
+    ],
+    location: {...generateNearbyCoords(SF_BASE.lat, SF_BASE.lng, 5), city: 'San Francisco', country: 'USA'},
+    basics: {height: 160, bodyType: 'slim', ethnicity: 'South Asian', languages: ['English', 'Hindi', 'Tamil']},
+    lifestyle: {drinking: 'rarely', smoking: 'never', exercise: 'often', diet: 'vegetarian', pets: 'love_them', children: 'not_sure'},
+    work: {jobTitle: 'Content Writer', company: 'Publishing House', education: 'masters', school: 'Stanford'},
+    zodiacSign: 'pisces',
+    datingPreferences: {ageRange: {min: 25, max: 34}, maxDistance: 35, genderPreference: 'male', relationshipGoals: ['long_term'], showOnlyVerified: false, showOnlyWithBio: true, showOnlyWithPhotos: true, showOnlyActive: false, prioritizeSharedInterests: true, hideAge: false, hideDistance: false, incognitoMode: false},
+    verificationStatus: 'verified',
+    isActive: true,
+    lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+    distance: 3,
+    compatibilityScore: 93,
+  },
+];
+
+// Combine all profiles
+export const ALL_MOCK_PROFILES = [...MOCK_DATING_PROFILES, ...ADDITIONAL_MOCK_PROFILES];
+
 // Function to get mock profiles filtered by user preferences
 export const getMockDatingProfiles = (
   userGender?: string,
   lookingFor?: string,
   limit: number = 10
 ): DatingProfile[] => {
-  let filtered = [...MOCK_DATING_PROFILES];
+  let filtered = [...ALL_MOCK_PROFILES];
 
   // Filter by what the user is looking for
   if (lookingFor && lookingFor !== 'everyone') {

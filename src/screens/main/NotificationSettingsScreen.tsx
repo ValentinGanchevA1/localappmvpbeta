@@ -102,7 +102,7 @@ export const NotificationSettingsScreen: React.FC = () => {
   }, [dispatch, saveSettings]);
 
   // Handle time picker
-  const handleTimeChange = useCallback((event: any, selectedDate?: Date) => {
+  const handleTimeChange = useCallback((_: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
       setShowTimePicker(null);
     }
